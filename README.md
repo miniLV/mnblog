@@ -1,56 +1,130 @@
 # mnblog
 
-Warm editorial **Jekyll** theme plus a thin **agent CLI**. Ivory canvas, clay accent, optional dark mode. Extracted from [miniLV.github.io](https://github.com/miniLV/miniLV.github.io) (theme layer only).
+A warm editorial **Jekyll** theme with a thin **CLI** meant for people and coding agents.
 
-中文说明见 [README.zh.md](./README.zh.md).
+Ivory canvas, clay accent, Source Serif + Source Sans, large type, quiet chrome. Dark mode is warm charcoal, not pure black. The visual layer is inspired by Claude.ai’s product site; this repo is independent and not affiliated with Anthropic.
 
-## What’s in the box
+Extracted from the theme layer of [miniLV.github.io](https://github.com/miniLV/miniLV.github.io) (`12dbace`). Content, personal images, and site identity stay in your own blog repo.
 
-| Path | Purpose |
-|------|---------|
-| `_layouts/` `_includes/` `_sass/` `assets/` | Theme (remote_theme / gem friendly) |
-| `bin/mnblog` | `init` · `new` · `check` · `publish` · `serve` · `editor` |
-| `example/` | Minimal demo site + one sample post |
-| `editor/` | Local human stub (File System Access); publish still via CLI |
-| `AGENTS.md` · `skills/mnblog/` | Conventions for coding agents |
-| `css/` `js/` | Same assets mirrored for copy-paste layouts |
+中文：[README.zh.md](./README.zh.md)
 
-License: **Apache-2.0** (same family as the source blog).
+---
 
-## Quick start
+## What you get
+
+- Markdown posts in `_posts/` (same habit as a normal Jekyll blog)
+- Layouts for home, post, tags, and 404 — Sass only, no Grunt / webpack / Bootstrap
+- GitHub Pages–friendly (`github-pages` gem / `remote_theme`)
+- Optional front matter: `summary`, `subtitle`, `cover_image` / `header-img`
+- Light / dark toggle that remembers the choice (falls back to system preference)
+- **`mnblog` CLI** for agents: `init` → `new` → `check` → `publish`
+- A small **local editor** stub for humans (optional; publish still goes through the CLI)
+
+---
+
+## Three steps
+
+### 1. Create a site
 
 ```bash
 git clone https://github.com/miniLV/mnblog.git
 cd mnblog
 ./bin/mnblog init ../my-blog
 cd ../my-blog
-# edit _config.yml
-bundle install
-bundle exec jekyll serve
 ```
 
-Or without cloning the theme repo, once published on npm-style path / local install:
+`init` copies the example site and **vendors** the theme (`_layouts`, `_includes`, `_sass`, `assets`, …) so local preview works without waiting on GitHub.
+
+Edit `_config.yml`: `title`, `url`, `nav_items`, hero copy, social links.
+
+### 2. Preview locally
+
+Needs Ruby + Bundler:
 
 ```bash
-npx --yes github:miniLV/mnblog   # if you wire package bin later
-# or:
-node /path/to/mnblog/bin/mnblog init my-blog
+bundle install
+bundle exec jekyll serve
+# or: mnblog serve
 ```
 
-### Agent loop
+Open `http://127.0.0.1:4000`.
+
+### 3. Write and publish
+
+**Human or agent — same files:**
+
+```bash
+mnblog new "Your title" --tags jekyll,notes
+# edit the file under _posts/
+mnblog check
+mnblog publish -m "post: Your title"
+```
+
+Push to a GitHub Pages repo (often `<user>.github.io`). Pages builds with Jekyll; no Actions workflow is required for the default path.
+
+GitHub access for agents: **`gh` / git / API only** — do not drive github.com in a browser.
+
+---
+
+## Write a post
+
+`mnblog new` creates this shape. You can also hand-write `_posts/YYYY-MM-DD-slug.md`:
+
+```md
+---
+layout: post
+title: "Your title"
+subtitle: "Optional subtitle"
+date: 2026-10-17 12:00:00 +0800
+author: "Your name"
+tags:
+  - Jekyll
+  - Notes
+summary: "Optional custom summary for cards."
+# cover_image: /assets/your-image.png   # only if the file exists
+---
+
+Your content here.
+```
+
+Notes:
+
+- Filename under `_posts/` must be `YYYY-MM-DD-slug.md`.
+- `summary` is optional. Cards fall back to `subtitle` or an excerpt.
+- `cover_image` / `header-img` are optional. Posts render fine without images — **do not invent image URLs**.
+- Drafts: `mnblog new "Title" --draft` → `_drafts/`.
+
+Full agent conventions: [AGENTS.md](./AGENTS.md) · skill pack: [skills/mnblog/SKILL.md](./skills/mnblog/SKILL.md)
+
+---
+
+## Agent path (preferred)
+
+Agents should stay on the filesystem and CLI:
 
 ```text
-mnblog new "Title" --tags notes,dev
-# edit _posts/YYYY-MM-DD-slug.md
-mnblog check
-mnblog publish -m "post: Title"
+mnblog new "Title" --tags a,b
+→ edit _posts/YYYY-MM-DD-slug.md
+→ mnblog check
+→ mnblog publish -m "post: Title"
 ```
 
-GitHub: **`gh` / git / API only** — do not automate the github.com UI in a browser.
+| Command | What it does |
+|---------|----------------|
+| `mnblog init [dir]` | Starter site + vendored theme |
+| `mnblog new "title"` | New post with front matter |
+| `mnblog check [path]` | Validate front matter + date filename |
+| `mnblog publish` | `git add` / `commit` / `push` (`--dry-run` supported) |
+| `mnblog serve` | `bundle exec jekyll serve` when Bundler is available |
+| `mnblog editor` | Serve `editor/` on `http://127.0.0.1:4173/` |
+
+Zero npm dependencies for the CLI (Node ≥ 18). Optional: `package.json` exposes the `mnblog` bin.
+
+---
 
 ## Use as `remote_theme`
 
-In your site `_config.yml`:
+If you already have a Jekyll site and only want the look:
 
 ```yaml
 remote_theme: miniLV/mnblog
@@ -58,50 +132,73 @@ plugins:
   - jekyll-remote-theme
   - jekyll-paginate
   - jekyll-sitemap
+
 theme_stylesheet: "/assets/css/style.css"
 theme_script: "/assets/js/site.js"
+favicon: "/assets/favicon.svg"
 ```
 
-Keep your own `_posts`, `index.html`, `tags.html`, and identity fields in `_config.yml`. You can delete vendored `_layouts` / `_includes` / `_sass` / `assets` when remote_theme is active.
+Keep your own `_posts`, `index.html`, `tags.html`, and identity fields. When `remote_theme` is active, you can drop local copies of `_layouts` / `_includes` / `_sass` / `assets`.
 
-`mnblog init` **vendors** the theme into the new site so `jekyll serve` works offline without waiting on GitHub.
+There is also an `mnblog.gemspec` for the classic gem-theme layout if you prefer that over remote.
 
-## Front matter
+---
 
-```yaml
-layout: post
-title: "Required"
-subtitle: "Optional"
-date: 2026-10-17 12:00:00 +0800
-author: "you"
-tags:
-    - example
-summary: "Optional"
-```
+## Customize the site
 
-Filename: `_posts/YYYY-MM-DD-slug.md`. Full rules in [AGENTS.md](./AGENTS.md).
+Most site-level copy lives in `_config.yml` (same idea as the source blog):
 
-## Editor
+| Key | Role |
+|-----|------|
+| `title` · `SEOTitle` · `description` | Identity |
+| `brand_mark` | Letter in the nav mark |
+| `default_eyebrow` | Small label under the title |
+| `hero_title` · `hero_description` · `hero_*_cta` | Home hero |
+| `nav_items` · `social_links` · `footer_note` | Chrome |
+| `theme_stylesheet` · `theme_script` · `favicon` | Asset paths |
+| `timezone` | Default examples use `Asia/Shanghai` |
+
+Theme CSS tokens live in `_sass/_tokens.scss` (light ivory / dark charcoal). Change those only when you are intentionally forking the look.
+
+---
+
+## Local editor (optional)
 
 ```bash
-./bin/mnblog editor
+mnblog editor
 # → http://127.0.0.1:4173/
 ```
 
-v0.1: open a site folder (Chromium File System Access), edit `_posts/*.md`, save. **Publish** is intentionally external: `mnblog publish`.
+v0.1 stub: in Chromium, open a site folder, edit `_posts/*.md`, save via the File System Access API. **Publish is not in the page** — run `mnblog publish` (or git) afterward. Agents should not depend on this UI.
 
-## Design notes
+---
 
-- Light: ivory `#faf9f5`, clay accent `#d97757`
-- Dark: warm charcoal `#191815` (not pure black)
-- Type: Source Sans 3 / Source Serif 4 / JetBrains Mono
+## Fonts
 
-Palette is **inspired by** the Claude.ai / Anthropic marketing look; this is an independent theme, not an official product.
+Google Fonts are linked for Source Sans 3, Source Serif 4, and JetBrains Mono. Without network fonts, the stack falls back to Helvetica / Georgia / system mono. No local font install is required.
+
+---
+
+## Repository layout
+
+```text
+_layouts/  _includes/  _sass/   theme
+assets/                     CSS entry, JS, favicon
+css/  js/                   same assets mirrored for copy-paste sites
+bin/mnblog                  agent CLI
+example/                    minimal demo + one sample post
+editor/                     human stub
+AGENTS.md  skills/          agent docs
+```
+
+**Not** included: personal posts, personal `img/`, submodules, or migrating [miniLV.github.io](https://github.com/miniLV/miniLV.github.io). That stay-on-the-blog migration is a follow-up.
+
+---
 
 ## Status
 
-**v0.1.0** — theme extract + CLI + example + editor stub. Personal site migration (`miniLV.github.io` → consume mnblog) is a follow-up, not included here.
+**v0.1.0** — theme extract, CLI, example site, editor stub, bilingual docs. Good enough to start a new Pages blog or point `remote_theme` at this repo. Expect small breaks while the CLI and editor grow.
 
 ## License
 
-Apache License 2.0 — see [LICENSE](./LICENSE).
+[Apache License 2.0](./LICENSE)
