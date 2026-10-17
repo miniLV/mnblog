@@ -3,227 +3,24 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>mnblog editor (v0.1 stub)</title>
+  <title>mnblog editor → Desk</title>
   <style>
-    :root {
-      --bg: #faf9f5;
-      --fg: #141413;
-      --muted: #87867f;
-      --accent: #d97757;
-      --border: rgba(20, 20, 19, 0.12);
-      --panel: #f0eee6;
-      --font: "Source Sans 3", "Helvetica Neue", Helvetica, Arial, sans-serif;
-      --mono: "JetBrains Mono", ui-monospace, monospace;
-    }
-    [data-theme="dark"] {
-      --bg: #191815;
-      --fg: #f5f2ea;
-      --muted: #9a968a;
-      --accent: #e08a68;
-      --border: rgba(245, 242, 234, 0.14);
-      --panel: #2c2923;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: var(--font);
-      background: var(--bg);
-      color: var(--fg);
-      line-height: 1.5;
-    }
-    header {
-      padding: 1.25rem 1.5rem;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      gap: 1rem;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-    }
-    h1 { font-size: 1.125rem; margin: 0; font-weight: 600; }
-    .muted { color: var(--muted); font-size: 0.875rem; }
-    main {
-      display: grid;
-      grid-template-columns: 240px 1fr;
-      min-height: calc(100vh - 4rem);
-    }
-    @media (max-width: 800px) {
-      main { grid-template-columns: 1fr; }
-    }
-    aside, section {
-      padding: 1rem 1.25rem;
-    }
-    aside {
-      border-right: 1px solid var(--border);
-      background: var(--panel);
-    }
-    button, .btn {
-      font: inherit;
-      cursor: pointer;
-      border: 1px solid var(--border);
-      background: var(--bg);
-      color: var(--fg);
-      border-radius: 0.5rem;
-      padding: 0.4rem 0.75rem;
-    }
-    button.primary {
-      background: var(--accent);
-      border-color: transparent;
-      color: #fff;
-    }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
-    ul { list-style: none; padding: 0; margin: 0.75rem 0 0; }
-    li button.linkish {
-      width: 100%;
-      text-align: left;
-      border: none;
-      background: transparent;
-      padding: 0.35rem 0;
-      color: var(--fg);
-    }
-    li button.linkish.active { color: var(--accent); font-weight: 600; }
-    textarea {
-      width: 100%;
-      min-height: 60vh;
-      font-family: var(--mono);
-      font-size: 0.875rem;
-      line-height: 1.55;
-      padding: 1rem;
-      border: 1px solid var(--border);
-      border-radius: 0.5rem;
-      background: var(--bg);
-      color: var(--fg);
-      resize: vertical;
-    }
-    .toolbar { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
-    .banner {
-      margin-bottom: 1rem;
-      padding: 0.75rem 1rem;
-      border-radius: 0.5rem;
-      border: 1px solid var(--border);
-      background: var(--panel);
-      font-size: 0.9rem;
-    }
-    code { font-family: var(--mono); font-size: 0.85em; }
+    :root { --bg:#faf9f5; --fg:#141413; --muted:#87867f; --accent:#d97757; --border:rgba(20,20,19,.12); --font:"Source Sans 3",Helvetica,Arial,sans-serif; }
+    body { margin:0; min-height:100vh; display:grid; place-items:center; font-family:var(--font); background:var(--bg); color:var(--fg); padding:2rem; }
+    main { max-width:32rem; border:1px solid var(--border); border-radius:.75rem; padding:1.5rem; background:#f0eee6; }
+    h1 { font-size:1.25rem; margin:0 0 .5rem; }
+    p { color:var(--muted); line-height:1.5; }
+    code { font-family:ui-monospace,monospace; font-size:.9em; color:var(--fg); }
+    a.btn { display:inline-block; margin-top:.75rem; padding:.45rem .9rem; background:var(--accent); color:#fff; text-decoration:none; border-radius:.5rem; font-weight:600; }
   </style>
 </head>
 <body>
-  <header>
-    <div>
-      <h1>mnblog editor <span class="muted">v0.1 stub</span></h1>
-      <p class="muted" style="margin:0.25rem 0 0">Human helper. Agents should use <code>mnblog</code> CLI + Markdown files.</p>
-    </div>
-    <div class="toolbar">
-      <button type="button" id="btn-open" class="primary">Open folder</button>
-      <button type="button" id="btn-save" disabled>Save file</button>
-      <button type="button" id="btn-theme">Theme</button>
-    </div>
-  </header>
   <main>
-    <aside>
-      <strong>Posts</strong>
-      <p class="muted" id="folder-label">No folder open</p>
-      <ul id="file-list"></ul>
-    </aside>
-    <section>
-      <div class="banner">
-        <strong>Publish is not in this page.</strong>
-        After you save Markdown, run in the site repo:
-        <br><code>mnblog check && mnblog publish -m "post: …"</code>
-        <br>GitHub via <code>gh</code> / git only — no browser login here.
-        <br><br>
-        File System Access API works in Chromium. If your browser lacks it, edit files in an IDE and use the CLI.
-      </div>
-      <div class="toolbar">
-        <span class="muted" id="current-name">—</span>
-      </div>
-      <textarea id="editor" placeholder="Open a folder that contains _posts/, then pick a file." spellcheck="false"></textarea>
-    </section>
+    <h1>Editor stub retired</h1>
+    <p>v0.3 replaces this page with the local <strong>Desk</strong> UI (posts + Markdown + one-shot agent chat).</p>
+    <p>From your blog site root:</p>
+    <p><code>mnblog desk --ui</code><br>or <code>mnblog ui</code></p>
+    <p>Then open <code>http://127.0.0.1:4177/</code>. Agents still prefer the CLI.</p>
   </main>
-  <script>
-    (function () {
-      var dirHandle = null;
-      var fileHandle = null;
-      var postsDir = null;
-      var editor = document.getElementById("editor");
-      var list = document.getElementById("file-list");
-      var label = document.getElementById("folder-label");
-      var currentName = document.getElementById("current-name");
-      var btnSave = document.getElementById("btn-save");
-
-      function setTheme(next) {
-        document.documentElement.setAttribute("data-theme", next);
-        try { localStorage.setItem("mnblog-editor-theme", next); } catch (e) {}
-      }
-      try {
-        var stored = localStorage.getItem("mnblog-editor-theme");
-        if (stored === "dark" || stored === "light") setTheme(stored);
-      } catch (e) {}
-
-      document.getElementById("btn-theme").addEventListener("click", function () {
-        var cur = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
-        setTheme(cur === "dark" ? "light" : "dark");
-      });
-
-      async function refreshList() {
-        list.innerHTML = "";
-        if (!postsDir) return;
-        var names = [];
-        for await (var entry of postsDir.values()) {
-          if (entry.kind === "file" && entry.name.endsWith(".md")) names.push(entry.name);
-        }
-        names.sort().reverse();
-        names.forEach(function (name) {
-          var li = document.createElement("li");
-          var b = document.createElement("button");
-          b.type = "button";
-          b.className = "linkish";
-          b.textContent = name;
-          b.addEventListener("click", function () { openPost(name, b); });
-          li.appendChild(b);
-          list.appendChild(li);
-        });
-      }
-
-      async function openPost(name, btn) {
-        fileHandle = await postsDir.getFileHandle(name);
-        var file = await fileHandle.getFile();
-        editor.value = await file.text();
-        currentName.textContent = "_posts/" + name;
-        btnSave.disabled = false;
-        Array.prototype.forEach.call(list.querySelectorAll("button"), function (el) {
-          el.classList.toggle("active", el === btn);
-        });
-      }
-
-      document.getElementById("btn-open").addEventListener("click", async function () {
-        if (!window.showDirectoryPicker) {
-          alert("This browser has no File System Access API. Use an IDE + mnblog CLI instead.");
-          return;
-        }
-        try {
-          dirHandle = await window.showDirectoryPicker({ mode: "readwrite" });
-          try {
-            postsDir = await dirHandle.getDirectoryHandle("_posts");
-          } catch (e) {
-            alert("Selected folder has no _posts/. Pick the Jekyll site root.");
-            return;
-          }
-          label.textContent = dirHandle.name;
-          await refreshList();
-        } catch (e) {
-          if (e && e.name !== "AbortError") alert(String(e.message || e));
-        }
-      });
-
-      btnSave.addEventListener("click", async function () {
-        if (!fileHandle) return;
-        var writable = await fileHandle.createWritable();
-        await writable.write(editor.value);
-        await writable.close();
-        currentName.textContent = currentName.textContent.replace(/ \(saved\)?$/, "") + " (saved)";
-      });
-    })();
-  </script>
 </body>
 </html>

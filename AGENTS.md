@@ -9,14 +9,15 @@ You are editing a **Jekyll** site that uses the **mnblog** theme (warm ivory / c
 - Publish with `mnblog publish` (git add/commit/push) or equivalent `gh` / Contents API. Never drive github.com in a browser.
 - Keep front matter honest. Put substance in the Markdown body.
 - For a local coding-agent session in this site: `mnblog desk` or `mnblog ask "…"`. Those launch **Claude Code** (`claude`) or **Codex** (`codex`) already installed on the machine — mnblog does not hold API keys.
+- Humans may use `mnblog desk --ui` / `mnblog ui` (local Desk). Agents should still prefer CLI + files.
 
 ## Do not
 
 - Invent cover images, header images, or asset URLs that are not in the repo.
 - Commit personal secrets, private emails, or large binary dumps into the theme.
 - Change theme CSS casually in a content-only site; prefer content + config.
-- Use the local web editor as the agent primary path — it is a human stub. Agents use CLI + files.
-- Expect a browser “Desk” UI yet (planned for v0.3). v0.2 is CLI launch only.
+- Use the local Desk web UI as the agent primary path — it is for humans. Agents use CLI + files.
+- Expect Desk to keep a live multi-turn agent session — each chat send is a fresh `claude -p` / `codex exec` (one-shot).
 
 ## Post front matter
 
@@ -67,19 +68,23 @@ mnblog new "Title" --tags codex,notes
 mnblog check
 mnblog publish -m "post: Title"
 mnblog serve          # needs Ruby/Bundler
-mnblog editor         # human stub only
+mnblog editor         # alias of desk --ui
 mnblog desk [--agent claude|codex|auto]
+mnblog desk --ui [--port 4177]
+mnblog ui   [--port 4177]
 mnblog ask  [--agent claude|codex|auto] "prompt…"
 ```
 
-### ask / desk (v0.2)
+### ask / desk / ui (v0.2–v0.3)
 
 - Resolve the nearest directory that has **both** `_config.yml` and `_posts/`.
 - Copy `AGENTS.md` and `skills/mnblog/` from the mnblog package if missing.
 - Detect `claude` / `codex` on PATH. `--agent auto` prefers Claude Code when both exist.
 - `desk`: interactive TTY in the site root. Extra flags after `--` go to the agent CLI.
+- `desk --ui` / `ui`: local Desk on `http://127.0.0.1:4177/` (list + edit + one-shot agent SSE). Bind localhost only.
 - `ask`: one-shot when possible — `claude -p "…"` or `codex exec "…"`. No prompt → falls back to `desk`.
 - Auth stays with those CLIs (whatever login you already use). mnblog never asks for cloud API keys.
+- Desk chat limit: **one-shot per send** (no long-lived agent session inside mnblog).
 
 ## Skill
 

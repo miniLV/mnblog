@@ -2,7 +2,7 @@
 /**
  * mnblog — thin agent-friendly CLI for the mnblog Jekyll theme.
  * Zero npm dependencies.
- * Commands: init | new | check | publish | serve | editor | ask | desk
+ * Commands: init | new | check | publish | serve | editor | ask | desk | ui
  */
 "use strict";
 
@@ -10,11 +10,11 @@ const fs = require("fs");
 const path = require("path");
 const { spawnSync, spawn } = require("child_process");
 
-const VERSION = "0.2.0";
+const VERSION = "0.3.0";
 const ROOT = path.resolve(__dirname, "..");
 
 function usage(code = 0) {
-  const text = `mnblog ${VERSION} — Jekyll theme + agent CLI
+  const text = `mnblog ${VERSION} — Jekyll theme + agent CLI + local Desk
 
 Usage:
   mnblog init [dir]                  Create a site from example/ (vendors theme)
@@ -22,9 +22,10 @@ Usage:
   mnblog check [path]                Validate post front matter / filename
   mnblog publish [--message|-m] [--dry-run]
   mnblog serve                       Run or print jekyll serve
-  mnblog editor                      Serve editor/ locally
+  mnblog editor                      Alias of desk --ui (legacy name)
   mnblog ask [--agent claude|codex|auto] [prompt...] [-- agent-args...]
-  mnblog desk [--agent claude|codex|auto] [-- agent-args...]
+  mnblog desk [--ui] [--port N] [--agent ...] [-- agent-args...]
+  mnblog ui [--port N]               Local Desk web UI (posts + editor + agent)
   mnblog help | --help | -h
   mnblog version | --version | -v
 
@@ -36,13 +37,15 @@ new options:
   --author name    Default from _config.yml title or "author"
   --date ISO       Override date (default: now, Asia/Shanghai wall clock if TZ set)
 
-ask / desk:
+ask / desk / ui:
   Resolve the nearest site root (_config.yml + _posts/).
   Ensure AGENTS.md and skills/mnblog/ are present (copy from package if missing).
   Launch the local Claude Code (\`claude\`) or Codex (\`codex\`) CLI — no cloud keys in mnblog.
   --agent auto     Prefer claude when both exist (default)
   desk             Interactive TTY session in the site root
-  ask              One-shot: claude -p … / codex exec … ; without a prompt, falls back to desk
+  desk --ui / ui   Local Obsidian-like Desk on http://127.0.0.1:4177/
+  ask              One-shot: claude -p ... / codex exec ... ; without a prompt, falls back to desk
+  Desk UI chat is one-shot per send (fresh CLI each turn).
 
 Agent tips:
   Prefer editing Markdown files directly, then mnblog check && mnblog publish.
@@ -75,14 +78,34 @@ function parseFlags(argv) {
   return flags;
 }
 
-/** Parse ask/desk args: --agent, positional prompt, and pass-through after -- */
+/** Parse ask/desk args: --agent, --ui, --port, positional prompt, pass-through after -- */
 function parseAgentArgs(argv) {
-  const flags = { agent: "auto", _: [], passthrough: [] };
+  const flags = {
+    agent: "auto",
+    ui: false,
+    port: Number(process.env.MNBLOG_DESK_PORT || 4177),
+    _: [],
+    passthrough: [],
+  };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--") {
       flags.passthrough = argv.slice(i + 1);
       break;
+    }
+    if (a === "--ui") {
+      flags.ui = true;
+      continue;
+    }
+    if (a === "--port") {
+      const v = argv[++i];
+      if (!v || v.startsWith("-")) die("usage: --port <number>");
+      flags.port = Number(v);
+      continue;
+    }
+    if (a.startsWith("--port=")) {
+      flags.port = Number(a.slice("--port=".length));
+      continue;
     }
     if (a === "--agent") {
       const v = argv[++i];
@@ -101,6 +124,9 @@ function parseAgentArgs(argv) {
   const allowed = new Set(["auto", "claude", "codex"]);
   if (!allowed.has(flags.agent)) {
     die(`invalid --agent ${flags.agent} (use claude|codex|auto)`);
+  }
+  if (!Number.isFinite(flags.port) || flags.port < 1 || flags.port > 65535) {
+    die(`invalid --port ${flags.port}`);
   }
   return flags;
 }
@@ -317,7 +343,7 @@ function cmdInit(argv) {
 
   copyDir(path.join(ROOT, "example"), target);
 
-  for (const dir of ["_layouts", "_includes", "_sass", "assets", "css", "js"]) {
+  for (const dir of ["_layouts", "_includes", "_sass", "assets", "css", "js", "desk"]) {
     const src = path.join(ROOT, dir);
     if (fs.existsSync(src)) copyDir(src, path.join(target, dir));
   }
@@ -349,7 +375,8 @@ function cmdInit(argv) {
       `  bundle install   # needs Ruby + Bundler\n` +
       `  bundle exec jekyll serve\n` +
       `  # or: ./bin/mnblog new "My post" && ./bin/mnblog publish\n` +
-      `  # agent session: ./bin/mnblog desk\n`
+      `  # agent TTY: ./bin/mnblog desk\n` +
+      `  # local Desk UI: ./bin/mnblog desk --ui\n`
   );
 }
 
@@ -522,22 +549,40 @@ function cmdServe() {
   );
 }
 
-function cmdEditor() {
-  const editorDir = path.join(ROOT, "editor");
-  if (!fs.existsSync(path.join(editorDir, "index.html"))) {
-    die(`editor missing at ${editorDir}`);
+function cmdUi(argv) {
+  const flags = parseAgentArgs(argv || []);
+  const site = findBlogSiteRoot();
+  const ctx = ensureAgentsAndSkill(site);
+  process.stdout.write(`mnblog Desk UI ${VERSION}\n`);
+  process.stdout.write(`  site: ${site}\n`);
+  if (ctx.copied.length) {
+    process.stdout.write(`  copied: ${ctx.copied.join(", ")}\n`);
   }
-  const port = process.env.MNBLOG_EDITOR_PORT || "4173";
+  const serverJs = path.join(ROOT, "desk", "server.js");
+  if (!fs.existsSync(serverJs)) die(`desk server missing at ${serverJs}`);
   process.stdout.write(
-    `mnblog editor (v0.1 stub)\n` +
-      `Serving ${editorDir} at http://127.0.0.1:${port}/\n` +
-      `Publish still runs via CLI: mnblog publish\n` +
-      `Ctrl+C to stop.\n`
+    `  Full Jekyll preview: mnblog serve (separate terminal)\n`
   );
-  const r = run("python3", ["-m", "http.server", port, "--bind", "127.0.0.1"], {
-    cwd: editorDir,
+  const child = spawn(
+    process.execPath,
+    [serverJs, "--port", String(flags.port), "--site", site],
+    { cwd: site, stdio: "inherit", env: process.env }
+  );
+  child.on("error", (err) => die(`failed to start Desk: ${err.message}`));
+  child.on("exit", (code, signal) => {
+    if (signal) {
+      process.kill(process.pid, signal);
+      return;
+    }
+    process.exit(code == null ? 1 : code);
   });
-  process.exit(r.status || 0);
+}
+
+function cmdEditor(argv) {
+  process.stdout.write(
+    "mnblog editor -> Desk UI (v0.3). Same as: mnblog desk --ui\n"
+  );
+  return cmdUi(argv || []);
 }
 
 function prepareAgentSession(argv) {
@@ -550,6 +595,10 @@ function prepareAgentSession(argv) {
 }
 
 function cmdDesk(argv) {
+  const early = parseAgentArgs(argv);
+  if (early.ui) {
+    return cmdUi(argv);
+  }
   const { flags, site, agent } = prepareAgentSession(argv);
   const args = flags.passthrough.slice();
   // Optional: if positional tokens exist on desk, treat as initial prompt hint for claude
@@ -623,7 +672,9 @@ function main() {
     case "serve":
       return cmdServe();
     case "editor":
-      return cmdEditor();
+      return cmdEditor(rest);
+    case "ui":
+      return cmdUi(rest);
     case "ask":
       return cmdAsk(rest);
     case "desk":

@@ -46,7 +46,15 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/readme/editor.png" alt="mnblog local editor" width="860" />
+  <img src="docs/assets/readme/desk-ui.png" alt="mnblog Desk light" width="860" />
+</p>
+
+<p align="center">
+  <img src="docs/assets/readme/desk-ui-dark.png" alt="mnblog Desk dark" width="860" />
+</p>
+
+<p align="center">
+  <img src="docs/assets/readme/editor.png" alt="mnblog early editor stub (replaced by Desk)" width="860" />
 </p>
 
 Extracted from the theme layer of [miniLV.github.io](https://github.com/miniLV/miniLV.github.io). Content, personal images, and site identity stay in your own blog repo.
@@ -61,7 +69,7 @@ Extracted from the theme layer of [miniLV.github.io](https://github.com/miniLV/m
 - Optional front matter: `summary`, `subtitle`, `cover_image` / `header-img`
 - Light / dark toggle that remembers the choice (falls back to system preference)
 - **`mnblog` CLI** for agents: `init` → `new` → `check` → `publish`, plus `ask` / `desk` (launch local Claude Code / Codex)
-- A small **local editor** stub for humans (optional; publish still goes through the CLI; web session Desk is v0.3)
+- Local **Desk** (`mnblog desk --ui` / `mnblog ui`): post list, Markdown editor, one-shot local agent panel
 
 ---
 
@@ -152,11 +160,13 @@ mnblog new "Title" --tags a,b
 → mnblog publish -m "post: Title"
 ```
 
-For a local Claude Code / Codex session in the site (v0.2):
+For a local Claude Code / Codex session or Desk UI:
 
 ```bash
 cd my-blog
 mnblog desk                      # interactive: launch claude (or codex) in the site root
+mnblog desk --ui                 # local Desk web UI (default http://127.0.0.1:4177/)
+mnblog ui                        # same
 mnblog ask "draft a post about X"  # one-shot: claude -p … / or codex exec …
 mnblog desk --agent codex
 mnblog ask --agent auto "…" -- --output-format json   # flags after -- pass through
@@ -169,13 +179,14 @@ mnblog ask --agent auto "…" -- --output-format json   # flags after -- pass th
 | `mnblog check [path]` | Validate front matter + date filename |
 | `mnblog publish` | `git add` / `commit` / `push` (`--dry-run` supported) |
 | `mnblog serve` | `bundle exec jekyll serve` when Bundler is available |
-| `mnblog editor` | Serve `editor/` on `http://127.0.0.1:4173/` (human stub) |
+| `mnblog editor` | Alias of `desk --ui` (legacy name) |
 | `mnblog desk` | Interactive `claude` / `codex` in the site root |
+| `mnblog desk --ui` / `mnblog ui` | Local Desk: post list + editor + agent panel |
 | `mnblog ask "…"` | One-shot prompt; no prompt → falls back to `desk` |
 
-`ask` / `desk` resolve the nearest folder with `_config.yml` **and** `_posts/`, copy `AGENTS.md` + `skills/mnblog/` from the package if missing, and detect `claude` / `codex` on PATH (`--agent auto` prefers Claude when both exist). **mnblog never asks for cloud API keys** — it reuses whatever login those CLIs already have.
+`ask` / `desk` / `ui` resolve the nearest folder with `_config.yml` **and** `_posts/`, copy `AGENTS.md` + `skills/mnblog/` from the package if missing, and detect `claude` / `codex` on PATH (`--agent auto` prefers Claude when both exist). **mnblog never asks for cloud API keys** — it reuses whatever login those CLIs already have.
 
-Honest limits: Codex one-shot is `codex exec` (not `-p`); a clear error if neither binary is installed; the web Desk (posts + live chat) waits for **v0.3**.
+Honest limits: Codex one-shot is `codex exec` (not `-p`); a clear error if neither binary is installed; **Desk chat is one-shot per send** (fresh CLI process each turn) — prior turns are only pasted into the next prompt as context, not a live agent session.
 
 Zero npm dependencies for the CLI (Node ≥ 18). Optional: `package.json` exposes the `mnblog` bin.
 
@@ -221,14 +232,22 @@ Theme CSS tokens live in `_sass/_tokens.scss` (light ivory / dark charcoal). Cha
 
 ---
 
-## Local editor (optional)
+## Local Desk (for humans)
 
 ```bash
-mnblog editor
-# → http://127.0.0.1:4173/
+cd my-blog
+mnblog desk --ui
+# or: mnblog ui
+# → http://127.0.0.1:4177/
 ```
 
-v0.1 stub: in Chromium, open a site folder, edit `_posts/*.md`, save via the File System Access API. **Publish is not in the page** — run `mnblog publish` (or git) afterward. Agents should not depend on this UI.
+Three panes: left `_posts/` / `_drafts/`, center Markdown (Ctrl/Cmd+S saves to disk), right agent panel (streams local `claude -p` / `codex exec`). Top bar: agent picker, Publish (confirms then runs `mnblog publish`), simple Preview. Full Jekyll preview in another terminal: `mnblog serve`.
+
+- Binds `127.0.0.1` only; zero npm dependencies
+- **No** cloud API keys stored; **no** GitHub OAuth
+- Agents should still prefer CLI + files; Desk is the human surface
+
+`mnblog editor` is now an alias for Desk; the old stub page only points here.
 
 ---
 
@@ -244,9 +263,10 @@ Google Fonts are linked for Source Sans 3, Source Serif 4, and JetBrains Mono. W
 _layouts/  _includes/  _sass/   theme
 assets/                     CSS entry, JS, favicon
 css/  js/                   same assets mirrored for copy-paste sites
-bin/mnblog                  agent CLI (includes ask / desk)
+bin/mnblog                  agent CLI (includes ask / desk / ui)
+desk/                       local Desk server + UI
 example/                    demo site + 3 sample posts + parchment covers
-editor/                     human stub (not the agent path)
+editor/                     legacy stub (points to Desk)
 docs/assets/readme/         README screenshots
 AGENTS.md  skills/          agent docs + skill
 ```
@@ -257,7 +277,7 @@ AGENTS.md  skills/          agent docs + skill
 
 ## Status
 
-**v0.2.0** — `mnblog ask` / `mnblog desk` launch local Claude Code or Codex in the site directory (with AGENTS.md + skill). Web session Desk remains v0.3.
+**v0.3.0** — Local Desk (`mnblog desk --ui` / `mnblog ui`): post list + Markdown edit/save + one-shot local agent streaming panel + Publish. v0.2 TTY `ask` / `desk` still work.
 
 ## License
 

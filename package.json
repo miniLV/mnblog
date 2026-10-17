@@ -1,7 +1,7 @@
 {
   "name": "mnblog",
-  "version": "0.2.0",
-  "description": "Warm editorial Jekyll theme + agent CLI (ask/desk launch local Claude/Codex)",
+  "version": "0.3.0",
+  "description": "Warm editorial Jekyll theme + agent CLI + local Desk UI",
   "bin": {
     "mnblog": "./bin/mnblog"
   },
@@ -15,6 +15,7 @@
     "js",
     "example",
     "editor",
+    "desk",
     "skills",
     "AGENTS.md",
     "LICENSE",

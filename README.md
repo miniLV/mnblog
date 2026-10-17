@@ -46,7 +46,15 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/readme/editor.png" alt="mnblog 本地编辑器" width="860" />
+  <img src="docs/assets/readme/desk-ui.png" alt="mnblog Desk 浅色" width="860" />
+</p>
+
+<p align="center">
+  <img src="docs/assets/readme/desk-ui-dark.png" alt="mnblog Desk 深色" width="860" />
+</p>
+
+<p align="center">
+  <img src="docs/assets/readme/editor.png" alt="mnblog 早期编辑器 stub（已由 Desk 取代）" width="860" />
 </p>
 
 主题从 [miniLV.github.io](https://github.com/miniLV/miniLV.github.io) 的主题层抽出。文章、个人配图、站点身份留在你自己的博客仓。
@@ -61,7 +69,7 @@
 - 可选 front matter：`summary`、`subtitle`、`cover_image` / `header-img`
 - 深浅色切换，会记住选择（否则跟系统）
 - **`mnblog` CLI**：`init` → `new` → `check` → `publish`，以及 `ask` / `desk`（拉起本机 Claude Code / Codex）
-- 可选的本地 **编辑器雏形**（给人点；发布仍走 CLI；v0.3 才做网页会话台）
+- 本地 **Desk**（`mnblog desk --ui` / `mnblog ui`）：左栏文章、中间 Markdown、右栏本机 agent 一次性会话
 
 ---
 
@@ -152,11 +160,13 @@ mnblog new "标题" --tags a,b
 → mnblog publish -m "post: 标题"
 ```
 
-需要本机 Claude Code / Codex 会话时（v0.2）：
+需要本机 Claude Code / Codex 或 Desk 时：
 
 ```bash
 cd my-blog
 mnblog desk                      # 交互：在站点根目录拉起 claude（或 codex）
+mnblog desk --ui                 # 本地 Desk 网页（默认 http://127.0.0.1:4177/）
+mnblog ui                        # 同上
 mnblog ask "写一篇关于 X 的草稿"  # 一次性：claude -p … / 或 codex exec …
 mnblog desk --agent codex        # 强制 Codex
 mnblog ask --agent auto "…" -- --output-format json   # -- 之后参数原样传给 agent CLI
@@ -169,13 +179,14 @@ mnblog ask --agent auto "…" -- --output-format json   # -- 之后参数原样�
 | `mnblog check [path]` | 校验 front matter 与日期文件名 |
 | `mnblog publish` | `git add` / `commit` / `push`（支持 `--dry-run`） |
 | `mnblog serve` | 有 Bundler 时跑 `jekyll serve` |
-| `mnblog editor` | 在 `http://127.0.0.1:4173/` 打开编辑器页（人用雏形） |
+| `mnblog editor` | 等同 `desk --ui`（旧名） |
 | `mnblog desk` | 在站点根目录开交互式 `claude` / `codex` |
+| `mnblog desk --ui` / `mnblog ui` | 本地 Desk：文章列表 + 编辑器 + agent 面板 |
 | `mnblog ask "…"` | 一次性提问；无 prompt 时退回 `desk` |
 
-`ask` / `desk` 会：定位最近的 `_config.yml` + `_posts/`；若缺 `AGENTS.md` / `skills/mnblog/` 则从本包拷贝；检测 PATH 上的 `claude` / `codex`（`--agent auto` 两者都有时优先 Claude）。**不向 mnblog 配置云端 API key**——沿用你本机已登录的 Claude Code / Codex。
+`ask` / `desk` / `ui` 会：定位最近的 `_config.yml` + `_posts/`；若缺 `AGENTS.md` / `skills/mnblog/` 则从本包拷贝；检测 PATH 上的 `claude` / `codex`（`--agent auto` 两者都有时优先 Claude）。**不向 mnblog 配置云端 API key**——沿用你本机已登录的 Claude Code / Codex。
 
-诚实边界：Codex 一次性入口是 `codex exec`（不是 `-p`）；两边都没装会报清晰错误；网页 Desk（左栏文章 + 右栏实时会话）留到 **v0.3**。
+诚实边界：Codex 一次性入口是 `codex exec`（不是 `-p`）；两边都没装会报清晰错误；**Desk 聊天每一发都是新的 CLI 进程**（one-shot），没有内建多轮会话状态——历史只作为下一次 prompt 的上下文拼接。
 
 CLI 无 npm 依赖（Node ≥ 18）。`package.json` 里挂了 `mnblog` bin，可按需安装。
 
@@ -221,14 +232,22 @@ favicon: "/assets/favicon.svg"
 
 ---
 
-## 本地编辑器（可选）
+## 本地 Desk（人用）
 
 ```bash
-mnblog editor
-# → http://127.0.0.1:4173/
+cd my-blog
+mnblog desk --ui
+# 或：mnblog ui
+# → http://127.0.0.1:4177/
 ```
 
-v0.1：Chromium 下用 File System Access 打开站点目录、改 `_posts/*.md`、保存。**页面里不负责发布** —— 保存后另跑 `mnblog publish`（或 git）。Agent 不要依赖这个界面。
+三栏：左 `_posts/` / `_drafts/`，中 Markdown（Ctrl/Cmd+S 保存到磁盘），右 agent 面板（流式输出本机 `claude -p` / `codex exec`）。顶栏可选 agent、Publish（确认后跑 `mnblog publish`）、简易 Preview。完整 Jekyll 预览另开：`mnblog serve`。
+
+- 只绑 `127.0.0.1`，零 npm 依赖
+- **不存**云端 API key，不做 GitHub OAuth
+- Agent 主路径仍是 CLI + 文件；Desk 给人点
+
+`mnblog editor` 现为 Desk 别名；旧 stub 页仅作提示。
 
 ---
 
@@ -244,9 +263,10 @@ v0.1：Chromium 下用 File System Access 打开站点目录、改 `_posts/*.md`
 _layouts/  _includes/  _sass/   主题
 assets/                     样式入口、JS、favicon
 css/  js/                   同套资源，方便整仓拷贝
-bin/mnblog                  agent CLI（含 ask / desk）
+bin/mnblog                  agent CLI（含 ask / desk / ui）
+desk/                       本地 Desk 服务端 + UI
 example/                    演示站 + 3 篇样例 + 羊皮纸封面
-editor/                     给人用的雏形（非 agent 主路径）
+editor/                     旧 stub（指向 Desk）
 docs/assets/readme/         README 截图
 AGENTS.md  skills/          agent 文档 + skill
 ```
@@ -257,7 +277,7 @@ AGENTS.md  skills/          agent 文档 + skill
 
 ## 状态
 
-**v0.2.0** — `mnblog ask` / `mnblog desk`：在站点目录拉起本机 Claude Code 或 Codex（带 AGENTS.md + skill）。网页会话台仍是 v0.3。
+**v0.3.0** — 本地 Desk（`mnblog desk --ui` / `mnblog ui`）：文章列表 + Markdown 编辑保存 + 本机 agent one-shot 流式面板 + Publish。v0.2 的 TTY `ask` / `desk` 仍可用。
 
 ## 许可
 
