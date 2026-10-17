@@ -1,27 +1,28 @@
 {
   "name": "mnblog",
-  "version": "0.3.0",
-  "description": "Warm editorial Jekyll theme + agent CLI + local Desk UI",
+  "version": "0.4.0",
+  "description": "Warm editorial Jekyll theme + agent CLI + sketchboard covers + Desk",
   "bin": {
     "mnblog": "./bin/mnblog"
   },
   "files": [
-    "bin",
-    "_layouts",
-    "_includes",
-    "_sass",
-    "assets",
-    "css",
-    "js",
-    "example",
-    "editor",
-    "desk",
-    "skills",
     "AGENTS.md",
     "LICENSE",
-    "README.md",
     "README.en.md",
-    "mnblog.gemspec"
+    "README.md",
+    "_includes",
+    "_layouts",
+    "_sass",
+    "assets",
+    "bin",
+    "css",
+    "desk",
+    "docs",
+    "editor",
+    "example",
+    "js",
+    "mnblog.gemspec",
+    "skills"
   ],
   "repository": {
     "type": "git",

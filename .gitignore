@@ -8,3 +8,8 @@ node_modules/
 Gemfile.lock
 *.gem
 .DS_Store
+
+# local sketchboard scratch
+_diagrams/tmp/
+
+docs/_preview/

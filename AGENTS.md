@@ -4,7 +4,8 @@ You are editing a **Jekyll** site that uses the **mnblog** theme (warm ivory / c
 
 ## Do
 
-- Create posts with `mnblog new "Title" --tags a,b` or by writing `_posts/YYYY-MM-DD-slug.md` yourself.
+- Create posts with `mnblog new "Title" --tags a,b` (optional `--with-cover`) or by writing `_posts/YYYY-MM-DD-slug.md` yourself.
+- Generate covers/diagrams with `mnblog cover "…"` / `mnblog draw "…" --kind flow|architecture|flywheel` (sketchboard-diagram skill). Prefer those PNGs over soft gradients or stock photos.
 - Validate with `mnblog check` before commit.
 - Publish with `mnblog publish` (git add/commit/push) or equivalent `gh` / Contents API. Never drive github.com in a browser.
 - Keep front matter honest. Put substance in the Markdown body.
@@ -13,7 +14,8 @@ You are editing a **Jekyll** site that uses the **mnblog** theme (warm ivory / c
 
 ## Do not
 
-- Invent cover images, header images, or asset URLs that are not in the repo.
+- Invent stock photos, Unsplash URLs, or asset paths that are not in the repo.
+- Prefer PPT-style blocks when sketchboard can draw the diagram.
 - Commit personal secrets, private emails, or large binary dumps into the theme.
 - Change theme CSS casually in a content-only site; prefer content + config.
 - Use the local Desk web UI as the agent primary path — it is for humans. Agents use CLI + files.
@@ -64,7 +66,9 @@ summary: "Optional card / SEO blurb"
 
 ```text
 mnblog init my-blog
-mnblog new "Title" --tags codex,notes
+mnblog new "Title" --tags codex,notes [--with-cover]
+mnblog cover "Title"                 # sketchboard → assets/img/covers/
+mnblog draw "Loop" --kind flow       # sketchboard → assets/img/diagrams/
 mnblog check
 mnblog publish -m "post: Title"
 mnblog serve          # needs Ruby/Bundler
@@ -86,6 +90,16 @@ mnblog ask  [--agent claude|codex|auto] "prompt…"
 - Auth stays with those CLIs (whatever login you already use). mnblog never asks for cloud API keys.
 - Desk chat limit: **one-shot per send** (no long-lived agent session inside mnblog).
 
-## Skill
+## Skills
 
-See `skills/mnblog/SKILL.md` for a short skill pack you can point coding agents at.
+- `skills/mnblog/SKILL.md` — posts, CLI, Desk
+- `skills/sketchboard-diagram/SKILL.md` — hand-drawn covers & diagrams (HTML → PNG)
+
+### Images (mandatory preference)
+
+1. Architecture / flow / flywheel / README visuals → **sketchboard** (`mnblog draw` or agent + skill).
+2. Homepage / card covers → **`mnblog cover`** (same skill, cover template).
+3. Never invent stock photography. If render needs Chrome and it is missing, scaffold HTML + print the agent prompt; optional temporary demo: copy from `skills/sketchboard-diagram/docs/patterns/` (credit upstream).
+
+Full upstream: https://github.com/miniLV/sketchboard-diagram (`npx skills add` also works).
+

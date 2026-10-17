@@ -329,3 +329,14 @@ dialog input[type="text"] { width: 100%; }
   border-radius: var(--radius);
   white-space: pre-wrap;
 }
+
+.presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding: 0 0.75rem 0.5rem;
+}
+.presets .preset {
+  font-size: 0.75rem;
+  cursor: pointer;
+}

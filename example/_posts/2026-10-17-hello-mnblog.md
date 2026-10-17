@@ -8,7 +8,7 @@ tags:
     - mnblog
     - jekyll
 summary: "How this theme expects posts to look, and how agents should create them."
-cover_image: /assets/img/covers/cover-clay-dawn.jpg
+cover_image: /assets/img/covers/cover-hello-mnblog.png
 ---
 
 This is a **sample post**. Delete it after you start writing.

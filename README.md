@@ -69,6 +69,7 @@
 - 可选 front matter：`summary`、`subtitle`、`cover_image` / `header-img`
 - 深浅色切换，会记住选择（否则跟系统）
 - **`mnblog` CLI**：`init` → `new` → `check` → `publish`，以及 `ask` / `desk`（拉起本机 Claude Code / Codex）
+- **sketchboard 配图**：`mnblog cover` / `mnblog draw`，减轻作者出图负担
 - 本地 **Desk**（`mnblog desk --ui` / `mnblog ui`）：左栏文章、中间 Markdown、右栏本机 agent 一次性会话
 
 ---
@@ -132,7 +133,7 @@ tags:
   - Jekyll
   - Notes
 summary: "可选，自定义卡片摘要。"
-# cover_image: /assets/img/covers/cover-clay-dawn.jpg  # optional; file must exist
+# cover_image: /assets/img/covers/cover-hello-mnblog.png  # mnblog cover "…"
 ---
 
 正文写在这里。
@@ -183,12 +184,45 @@ mnblog ask --agent auto "…" -- --output-format json   # -- 之后参数原样�
 | `mnblog desk` | 在站点根目录开交互式 `claude` / `codex` |
 | `mnblog desk --ui` / `mnblog ui` | 本地 Desk：文章列表 + 编辑器 + agent 面板 |
 | `mnblog ask "…"` | 一次性提问；无 prompt 时退回 `desk` |
+| `mnblog cover "…"` / `mnblog draw "…"` | sketchboard 封面 / 文内图（HTML→PNG） |
 
 `ask` / `desk` / `ui` 会：定位最近的 `_config.yml` + `_posts/`；若缺 `AGENTS.md` / `skills/mnblog/` 则从本包拷贝；检测 PATH 上的 `claude` / `codex`（`--agent auto` 两者都有时优先 Claude）。**不向 mnblog 配置云端 API key**——沿用你本机已登录的 Claude Code / Codex。
 
 诚实边界：Codex 一次性入口是 `codex exec`（不是 `-p`）；两边都没装会报清晰错误；**Desk 聊天每一发都是新的 CLI 进程**（one-shot），没有内建多轮会话状态——历史只作为下一次 prompt 的上下文拼接。
 
 CLI 无 npm 依赖（Node ≥ 18）。`package.json` 里挂了 `mnblog` bin，可按需安装。
+
+
+---
+
+## 配图 / Images（sketchboard）
+
+封面和文内架构图走 [sketchboard-diagram](https://github.com/miniLV/sketchboard-diagram)（本仓已精简 vendored 到 `skills/sketchboard-diagram/`）。**不要编造图床 / Unsplash URL。**
+
+### 三步
+
+```bash
+# 1) 封面 → assets/img/covers/<slug>.png + 打印 front matter
+mnblog cover "文章标题"
+
+# 2) 文内图（architecture | flow | flywheel）
+mnblog draw "发布闭环" --kind flow
+
+# 3) 把路径写进文章
+# cover_image: /assets/img/covers/….png
+# 或 ![说明](/assets/img/diagrams/….png)
+```
+
+`mnblog new "标题" --with-cover` 会先 stub `cover_image`，再提醒你跑 `mnblog cover`。
+
+有本机 Chrome/Chromium 时 CLI 会直接 HTML→PNG；没有时仍会写出 `_diagrams/*.html` 和完整 agent prompt，交给 `mnblog ask` / Desk 预设「Generate cover / diagram」。也可：
+
+```bash
+npx skills add https://github.com/miniLV/sketchboard-diagram
+```
+
+示例站首页三张封面和一篇文内流程图，已是 sketchboard 渲染的 PNG（源 HTML 在 `example/_diagrams/`）。
+
 
 ---
 

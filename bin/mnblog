@@ -2,7 +2,7 @@
 /**
  * mnblog — thin agent-friendly CLI for the mnblog Jekyll theme.
  * Zero npm dependencies.
- * Commands: init | new | check | publish | serve | editor | ask | desk | ui
+ * Commands: init | new | check | publish | serve | editor | ask | desk | ui | draw | cover
  */
 "use strict";
 
@@ -10,14 +10,16 @@ const fs = require("fs");
 const path = require("path");
 const { spawnSync, spawn } = require("child_process");
 
-const VERSION = "0.3.0";
+const VERSION = "0.4.0";
 const ROOT = path.resolve(__dirname, "..");
 
+const sketchboard = require("./lib/sketchboard");
+
 function usage(code = 0) {
-  const text = `mnblog ${VERSION} — Jekyll theme + agent CLI + local Desk
+  const text = `mnblog ${VERSION} — Jekyll theme + agent CLI + sketchboard images + Desk
 
 Usage:
-  mnblog init [dir]                  Create a site from example/ (vendors theme)
+  mnblog init [dir]                  Create a site from example/ (vendors theme + skills)
   mnblog new "title" [options]       Create _posts/YYYY-MM-DD-slug.md
   mnblog check [path]                Validate post front matter / filename
   mnblog publish [--message|-m] [--dry-run]
@@ -26,6 +28,8 @@ Usage:
   mnblog ask [--agent claude|codex|auto] [prompt...] [-- agent-args...]
   mnblog desk [--ui] [--port N] [--agent ...] [-- agent-args...]
   mnblog ui [--port N]               Local Desk web UI (posts + editor + agent)
+  mnblog draw "description" [options]
+  mnblog cover "title or brief" [options]
   mnblog help | --help | -h
   mnblog version | --version | -v
 
@@ -35,21 +39,29 @@ new options:
   --subtitle text  Optional subtitle
   --summary text   Optional summary
   --author name    Default from _config.yml title or "author"
-  --date ISO       Override date (default: now, Asia/Shanghai wall clock if TZ set)
+  --date ISO       Override date
+  --with-cover     Stub cover_image + print mnblog cover / agent prompt
+
+draw / cover (vendored sketchboard-diagram skill):
+  Scaffold HTML from skills/sketchboard-diagram templates, try HTML→PNG via
+  headless Chrome. If Chrome is missing, print the exact agent prompt + paths.
+  --kind cover|architecture|flow|flywheel   (draw; default architecture)
+  --out path       PNG output (relative to site root OK)
+  --no-render      Only write HTML + print agent prompt
+  --force          Overwrite existing HTML/PNG
+
+  mnblog cover "Title"     → assets/img/covers/<slug>.png + front-matter snippet
+  mnblog draw "…" --kind flow
 
 ask / desk / ui:
-  Resolve the nearest site root (_config.yml + _posts/).
-  Ensure AGENTS.md and skills/mnblog/ are present (copy from package if missing).
-  Launch the local Claude Code (\`claude\`) or Codex (\`codex\`) CLI — no cloud keys in mnblog.
-  --agent auto     Prefer claude when both exist (default)
-  desk             Interactive TTY session in the site root
-  desk --ui / ui   Local Obsidian-like Desk on http://127.0.0.1:4177/
-  ask              One-shot: claude -p ... / codex exec ... ; without a prompt, falls back to desk
-  Desk UI chat is one-shot per send (fresh CLI each turn).
+  Ensure AGENTS.md, skills/mnblog/, skills/sketchboard-diagram/ when missing.
+  Launch local Claude Code / Codex — no cloud keys in mnblog.
+  Desk chat is one-shot. Prefer sketchboard for covers and in-post diagrams.
 
 Agent tips:
-  Prefer editing Markdown files directly, then mnblog check && mnblog publish.
-  Do not invent images. Do not use a browser for GitHub — use gh / git.
+  Prefer files + CLI, then mnblog check && mnblog publish.
+  Do not invent stock photos. Prefer sketchboard PNG.
+  Do not use a browser for GitHub — use gh / git.
 `;
   process.stdout.write(text);
   process.exit(code);
@@ -72,6 +84,11 @@ function parseFlags(argv) {
     else if (a === "--author") flags.author = argv[++i];
     else if (a === "--date") flags.date = argv[++i];
     else if (a === "--message" || a === "-m") flags.message = argv[++i];
+    else if (a === "--with-cover") flags.withCover = true;
+    else if (a === "--kind") flags.kind = argv[++i];
+    else if (a === "--out") flags.out = argv[++i];
+    else if (a === "--no-render") flags.noRender = true;
+    else if (a === "--force") flags.force = true;
     else if (a.startsWith("-")) die(`unknown flag: ${a}`);
     else flags._.push(a);
   }
@@ -288,9 +305,20 @@ function ensureAgentsAndSkill(site) {
     copied.push("skills/mnblog/");
   }
 
+  const sbSrc = path.join(ROOT, "skills", "sketchboard-diagram");
+  const sbDest = path.join(site, "skills", "sketchboard-diagram");
+  const sbSkill = path.join(sbDest, "SKILL.md");
+  if (!fs.existsSync(sbSkill) && fs.existsSync(path.join(sbSrc, "SKILL.md"))) {
+    copyDir(sbSrc, sbDest);
+    copied.push("skills/sketchboard-diagram/");
+  }
+
   return {
     agentsPath: agentsDest,
     skillPath: skillDest,
+    sketchboardPath: fs.existsSync(sbSkill)
+      ? sbSkill
+      : path.join(sbSrc, "SKILL.md"),
     packageSkillPath: path.join(skillSrcDir, "SKILL.md"),
     copied,
   };
@@ -356,6 +384,10 @@ function cmdInit(argv) {
   if (fs.existsSync(path.join(skillSrc, "SKILL.md"))) {
     copyDir(skillSrc, path.join(target, "skills", "mnblog"));
   }
+  const sbSrcInit = path.join(ROOT, "skills", "sketchboard-diagram");
+  if (fs.existsSync(path.join(sbSrcInit, "SKILL.md"))) {
+    copyDir(sbSrcInit, path.join(target, "skills", "sketchboard-diagram"));
+  }
 
   // Convenience: symlink or copy CLI into site bin/
   const siteBin = path.join(target, "bin");
@@ -365,6 +397,10 @@ function cmdInit(argv) {
     fs.chmodSync(path.join(siteBin, "mnblog"), 0o755);
   } catch (_) {
     /* ignore */
+  }
+  const libSrc = path.join(ROOT, "bin", "lib");
+  if (fs.existsSync(libSrc)) {
+    copyDir(libSrc, path.join(siteBin, "lib"));
   }
 
   process.stdout.write(
@@ -376,7 +412,8 @@ function cmdInit(argv) {
       `  bundle exec jekyll serve\n` +
       `  # or: ./bin/mnblog new "My post" && ./bin/mnblog publish\n` +
       `  # agent TTY: ./bin/mnblog desk\n` +
-      `  # local Desk UI: ./bin/mnblog desk --ui\n`
+      `  # local Desk UI: ./bin/mnblog desk --ui\n` +
+      `  # covers/diagrams: ./bin/mnblog cover "Title" | ./bin/mnblog draw "…" --kind flow\n`
   );
 }
 
@@ -429,10 +466,23 @@ function cmdNew(argv) {
     for (const t of tags) lines.push(`    - ${t}`);
   }
   if (flags.summary) lines.push(`summary: ${JSON.stringify(flags.summary)}`);
+  let coverRel = null;
+  if (flags.withCover) {
+    coverRel = `/assets/img/covers/cover-${slug}.png`;
+    lines.push(`cover_image: ${coverRel}`);
+  }
   lines.push("---", "", `<!-- write the post -->`, "");
 
   fs.writeFileSync(filepath, lines.join("\n"), "utf8");
   process.stdout.write(`${filepath}\n`);
+  if (flags.withCover) {
+    process.stdout.write(
+      `\ncover stubbed: ${coverRel}\n` +
+        `  Generate PNG with sketchboard:\n` +
+        `    mnblog cover ${JSON.stringify(title)}\n` +
+        `  Or ask an agent using skills/sketchboard-diagram/SKILL.md\n`
+    );
+  }
 }
 
 function parseFrontMatter(text) {
@@ -526,6 +576,40 @@ function cmdPublish(argv) {
   r = run("git", ["push"], { cwd: site });
   if (r.status !== 0) die("git push failed — use gh auth / check remote");
   process.stdout.write("published\n");
+}
+
+
+function cmdDraw(argv) {
+  const flags = parseFlags(argv);
+  const description = flags._.join(" ").trim();
+  if (!description) {
+    die('usage: mnblog draw "description" [--kind cover|architecture|flow|flywheel] [--out path] [--no-render] [--force]');
+  }
+  const site = findSiteRoot();
+  return sketchboard.cmdDraw({
+    ROOT,
+    site,
+    flags,
+    description,
+    slugify,
+    die,
+  });
+}
+
+function cmdCover(argv) {
+  const flags = parseFlags(argv);
+  const title = flags._.join(" ").trim();
+  if (!title) die('usage: mnblog cover "title or brief" [--out path] [--no-render] [--force]');
+  flags.kind = "cover";
+  const site = findSiteRoot();
+  return sketchboard.cmdCover({
+    ROOT,
+    site,
+    flags,
+    description: title,
+    slugify,
+    die,
+  });
 }
 
 function cmdServe() {
@@ -679,6 +763,10 @@ function main() {
       return cmdAsk(rest);
     case "desk":
       return cmdDesk(rest);
+    case "draw":
+      return cmdDraw(rest);
+    case "cover":
+      return cmdCover(rest);
     default:
       die(`unknown command: ${cmd}\nRun mnblog help`);
   }

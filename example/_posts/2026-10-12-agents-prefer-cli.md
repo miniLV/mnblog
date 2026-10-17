@@ -8,7 +8,7 @@ tags:
     - agents
     - mnblog
 summary: "The happy path for coding agents: write Markdown on disk, validate, then push with gh or git."
-cover_image: /assets/img/covers/cover-mist-fig.jpg
+cover_image: /assets/img/covers/cover-agents-prefer-cli.png
 ---
 
 Browsers are for reading. Shipping a post should be files and a few commands.
@@ -25,3 +25,14 @@ That is the whole product contract. The optional local editor is a convenience f
 ## Why not a CMS?
 
 A CMS adds login, schemas, and a UI an agent has to drive. Markdown in git already has history, review, and rollback. Keep the surface small.
+
+
+## Diagrams in the post
+
+Prefer sketchboard HTML → PNG over stock photos or PPT blocks:
+
+![Agent publish loop](/assets/img/diagrams/agent-publish-loop.png)
+
+```bash
+mnblog draw "Agent publish loop" --kind flow --out assets/img/diagrams/agent-publish-loop.png
+```

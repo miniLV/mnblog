@@ -69,6 +69,7 @@ Extracted from the theme layer of [miniLV.github.io](https://github.com/miniLV/m
 - Optional front matter: `summary`, `subtitle`, `cover_image` / `header-img`
 - Light / dark toggle that remembers the choice (falls back to system preference)
 - **`mnblog` CLI** for agents: `init` → `new` → `check` → `publish`, plus `ask` / `desk` (launch local Claude Code / Codex)
+- **sketchboard images**: `mnblog cover` / `mnblog draw` so authors (and agents) skip stock-photo chores
 - Local **Desk** (`mnblog desk --ui` / `mnblog ui`): post list, Markdown editor, one-shot local agent panel
 
 ---
@@ -132,7 +133,7 @@ tags:
   - Jekyll
   - Notes
 summary: "Optional custom summary for cards."
-# cover_image: /assets/img/covers/cover-clay-dawn.jpg  # optional; file must exist
+# cover_image: /assets/img/covers/cover-hello-mnblog.png  # mnblog cover "…"
 ---
 
 Your content here.
@@ -183,12 +184,45 @@ mnblog ask --agent auto "…" -- --output-format json   # flags after -- pass th
 | `mnblog desk` | Interactive `claude` / `codex` in the site root |
 | `mnblog desk --ui` / `mnblog ui` | Local Desk: post list + editor + agent panel |
 | `mnblog ask "…"` | One-shot prompt; no prompt → falls back to `desk` |
+| `mnblog cover "…"` / `mnblog draw "…"` | sketchboard cover / in-post diagram (HTML→PNG) |
 
 `ask` / `desk` / `ui` resolve the nearest folder with `_config.yml` **and** `_posts/`, copy `AGENTS.md` + `skills/mnblog/` from the package if missing, and detect `claude` / `codex` on PATH (`--agent auto` prefers Claude when both exist). **mnblog never asks for cloud API keys** — it reuses whatever login those CLIs already have.
 
 Honest limits: Codex one-shot is `codex exec` (not `-p`); a clear error if neither binary is installed; **Desk chat is one-shot per send** (fresh CLI process each turn) — prior turns are only pasted into the next prompt as context, not a live agent session.
 
 Zero npm dependencies for the CLI (Node ≥ 18). Optional: `package.json` exposes the `mnblog` bin.
+
+
+---
+
+## Images (sketchboard)
+
+Covers and in-post diagrams use [sketchboard-diagram](https://github.com/miniLV/sketchboard-diagram) (sparse copy under `skills/sketchboard-diagram/`). **Do not invent CDN / Unsplash URLs.**
+
+### Three steps
+
+```bash
+# 1) Cover → assets/img/covers/<slug>.png + front-matter snippet
+mnblog cover "Post title"
+
+# 2) In-post diagram (architecture | flow | flywheel)
+mnblog draw "Publish loop" --kind flow
+
+# 3) Wire the path into the post
+# cover_image: /assets/img/covers/….png
+# or ![caption](/assets/img/diagrams/….png)
+```
+
+`mnblog new "Title" --with-cover` stubs `cover_image` and reminds you to run `mnblog cover`.
+
+With Chrome/Chromium on PATH (or `CHROME_PATH`), the CLI renders HTML→PNG. Without it, you still get `_diagrams/*.html` plus an exact agent prompt — use `mnblog ask` or Desk presets **Generate cover / diagram**. Or install the full skill:
+
+```bash
+npx skills add https://github.com/miniLV/sketchboard-diagram
+```
+
+The example homepage covers and one in-post flow diagram are real sketchboard PNGs (HTML sources under `example/_diagrams/`).
+
 
 ---
 

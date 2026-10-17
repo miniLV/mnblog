@@ -67,6 +67,10 @@
         Each send runs a fresh local <code>claude -p</code> / <code>codex exec</code>. No cloud keys in mnblog.
       </p>
       <div id="chat-log" class="chat-log"></div>
+      <div class="presets" id="sketch-presets">
+        <button type="button" class="chip preset" data-preset="cover">Generate cover</button>
+        <button type="button" class="chip preset" data-preset="diagram">Generate diagram</button>
+      </div>
       <form id="chat-form" class="chat-form">
         <textarea id="chat-input" rows="3" placeholder="Ask about the open post… e.g. tighten the intro, add tags, draft a summary"></textarea>
         <div class="chat-actions">

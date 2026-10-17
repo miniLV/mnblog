@@ -398,6 +398,41 @@
     });
   });
 
+  function sketchPrompt(kind) {
+    var title = "this post";
+    if (state.content) {
+      var m = state.content.match(/^title:\s*["']?(.+?)["']?\s*$/m);
+      if (m) title = m[1].trim();
+    }
+    var pathHint = state.currentPath || "_posts/…";
+    if (kind === "cover") {
+      return (
+        "Use skills/sketchboard-diagram/SKILL.md and mnblog cover workflow.\n" +
+        "Generate a homepage cover for: " + title + "\n" +
+        "1) Run: mnblog cover " + JSON.stringify(title) + " --force\n" +
+        "   (or scaffold HTML under _diagrams/, refine labels, then render-html-to-png.mjs)\n" +
+        "2) Set cover_image in " + pathHint + " to the PNG under assets/img/covers/\n" +
+        "3) Do not invent stock photos. Prefer sketchboard PNG."
+      );
+    }
+    return (
+      "Use skills/sketchboard-diagram/SKILL.md.\n" +
+      "Draw an in-post diagram for: " + title + "\n" +
+      "1) mnblog draw " + JSON.stringify(title + " architecture") + " --kind architecture --force\n" +
+      "   (or --kind flow / flywheel)\n" +
+      "2) Insert Markdown image pointing at assets/img/diagrams/…png in " + pathHint + "\n" +
+      "3) Keep grid-paper sketchboard style; no stock photos."
+    );
+  }
+
+  document.querySelectorAll("#sketch-presets .preset").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var kind = btn.getAttribute("data-preset");
+      el.chatInput.value = sketchPrompt(kind);
+      el.chatInput.focus();
+    });
+  });
+
   el.chatForm.addEventListener("submit", sendChat);
   el.btnStop.addEventListener("click", stopChat);
 
