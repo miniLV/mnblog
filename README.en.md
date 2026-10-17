@@ -124,7 +124,7 @@ tags:
   - Jekyll
   - Notes
 summary: "Optional custom summary for cards."
-# cover_image: /assets/your-image.png   # only if the file exists
+# cover_image: /assets/img/covers/cover-clay-dawn.jpg  # optional; file must exist
 ---
 
 Your content here.
@@ -229,7 +229,7 @@ _layouts/  _includes/  _sass/   theme
 assets/                     CSS entry, JS, favicon
 css/  js/                   same assets mirrored for copy-paste sites
 bin/mnblog                  agent CLI
-example/                    minimal demo + one sample post
+example/                    demo site + 3 sample posts + parchment covers
 editor/                     human stub
 docs/assets/readme/         README screenshots
 AGENTS.md  skills/          agent docs
@@ -241,7 +241,7 @@ AGENTS.md  skills/          agent docs
 
 ## Status
 
-**v0.1.1** — theme extract, CLI, example site, editor stub, README screenshots, zh/en toggle. Good enough to start a new Pages blog or point `remote_theme` at this repo. Expect small breaks while the CLI and editor grow.
+**v0.1.2** — sample post covers are soft parchment washes; no-cover card fallbacks are softer. Theme + CLI + zh/en README screenshots still the baseline.
 
 ## License
 

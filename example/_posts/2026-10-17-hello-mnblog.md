@@ -8,6 +8,7 @@ tags:
     - mnblog
     - jekyll
 summary: "How this theme expects posts to look, and how agents should create them."
+cover_image: /assets/img/covers/cover-clay-dawn.jpg
 ---
 
 This is a **sample post**. Delete it after you start writing.
@@ -25,6 +26,7 @@ author: "you"
 tags:
     - example
 summary: "One or two sentences for cards and SEO."
+cover_image: /assets/img/covers/cover-clay-dawn.jpg   # optional; only if the file exists
 ```
 
 Filename: `_posts/YYYY-MM-DD-slug.md`.
@@ -42,4 +44,4 @@ No browser for GitHub. Prefer `gh` / `git`. Do not invent cover images unless th
 
 ## Look
 
-Warm ivory canvas, clay accent, optional dark mode (sun/moon in the header). That is the whole visual idea.
+Warm ivory canvas, clay accent, optional dark mode (sun/moon in the header). Sample covers under `assets/img/covers/` are soft parchment washes — swap them for your own art when you publish for real.

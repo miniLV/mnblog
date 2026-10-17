@@ -111,42 +111,70 @@
   object-fit: cover;
 }
 
-/* Soft Anthropic swatch fills when no cover */
-.post-item__media--clay { background: #d97757; }
-.post-item__media--sky { background: #6a9bcc; }
-.post-item__media--fig { background: #c46686; }
-.post-item__media--coral { background: #ebcece; }
-.post-item__media--cactus { background: #bcd1ca; }
-.post-item__media--olive { background: #788c5d; }
+/* Soft parchment washes when no cover — not flat PPT swatches */
+.post-item__media--clay {
+  background:
+    radial-gradient(120% 90% at 85% 15%, rgba(217, 119, 87, 0.45), transparent 55%),
+    linear-gradient(135deg, #faf9f5 0%, #f0d5c4 48%, #e8b89a 100%);
+}
+.post-item__media--sky {
+  background:
+    radial-gradient(110% 90% at 80% 20%, rgba(106, 155, 204, 0.35), transparent 58%),
+    linear-gradient(140deg, #f7f6f1 0%, #d5e3ef 50%, #b7cde0 100%);
+}
+.post-item__media--fig {
+  background:
+    radial-gradient(110% 90% at 75% 25%, rgba(196, 102, 134, 0.32), transparent 58%),
+    linear-gradient(145deg, #faf6f4 0%, #ebcece 52%, #d9a8b8 100%);
+}
+.post-item__media--coral {
+  background:
+    radial-gradient(100% 80% at 70% 30%, rgba(235, 206, 206, 0.9), transparent 60%),
+    linear-gradient(135deg, #faf9f5 0%, #f3e0e0 55%, #ebcece 100%);
+}
+.post-item__media--cactus {
+  background:
+    radial-gradient(110% 90% at 78% 22%, rgba(188, 209, 202, 0.85), transparent 58%),
+    linear-gradient(138deg, #faf9f5 0%, #dce8e3 50%, #bcd1ca 100%);
+}
+.post-item__media--olive {
+  background:
+    radial-gradient(110% 90% at 82% 18%, rgba(120, 140, 93, 0.28), transparent 55%),
+    linear-gradient(142deg, #f5f2e4 0%, #d5dcc0 52%, #a8b888 100%);
+}
 
 .post-item__pattern {
   position: absolute;
   inset: 0;
+  pointer-events: none;
 }
 
+/* Soft overlapping mist — no hard circle / diagonal line */
 .post-item__pattern span {
   position: absolute;
   border-radius: 999px;
-  opacity: 0.35;
-  background: rgba(250, 249, 245, 0.85);
+  filter: blur(10px);
+  opacity: 0.55;
+  background: rgba(250, 249, 245, 0.55);
 }
 
 .post-item__pattern span:nth-child(1) {
-  width: 3.5rem;
-  height: 3.5rem;
-  top: -0.6rem;
-  right: -0.4rem;
+  width: 4.25rem;
+  height: 4.25rem;
+  top: -1.1rem;
+  right: -0.9rem;
 }
 
 .post-item__pattern span:nth-child(2) {
-  width: 55%;
-  height: 1px;
-  bottom: 1.4rem;
-  left: 0.7rem;
-  background: rgba(20, 20, 19, 0.18);
-  transform: rotate(-24deg);
-  border-radius: 0;
-  opacity: 1;
+  width: 3.2rem;
+  height: 3.2rem;
+  bottom: -0.85rem;
+  left: -0.55rem;
+  background: rgba(250, 249, 245, 0.4);
+  transform: none;
+  border-radius: 999px;
+  opacity: 0.5;
+  filter: blur(12px);
 }
 
 .post-item__content {

@@ -124,7 +124,7 @@ tags:
   - Jekyll
   - Notes
 summary: "可选，自定义卡片摘要。"
-# cover_image: /assets/your-image.png   # 仅当文件真实存在
+# cover_image: /assets/img/covers/cover-clay-dawn.jpg  # optional; file must exist
 ---
 
 正文写在这里。
@@ -229,7 +229,7 @@ _layouts/  _includes/  _sass/   主题
 assets/                     样式入口、JS、favicon
 css/  js/                   同套资源，方便整仓拷贝
 bin/mnblog                  agent CLI
-example/                    最小演示 + 一篇样例
+example/                    演示站 + 3 篇样例 + 羊皮纸封面
 editor/                     给人用的雏形
 docs/assets/readme/         README 截图
 AGENTS.md  skills/          agent 文档
@@ -241,7 +241,7 @@ AGENTS.md  skills/          agent 文档
 
 ## 状态
 
-**v0.1.1** — 主题抽取、CLI、example、编辑器雏形、README 截图与中英切换。可以开新的 Pages 博客，或把 `remote_theme` 指过来。CLI / 编辑器后续还会改，可能有小的不兼容。
+**v0.1.2** — 示例文章封面换成羊皮纸感软渐变；无图时卡片占位也柔和了。主题 + CLI + 中英 README 截图继续可用。
 
 ## 许可
 
