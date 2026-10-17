@@ -60,8 +60,8 @@ Extracted from the theme layer of [miniLV.github.io](https://github.com/miniLV/m
 - GitHub Pages–friendly (`github-pages` gem / `remote_theme`)
 - Optional front matter: `summary`, `subtitle`, `cover_image` / `header-img`
 - Light / dark toggle that remembers the choice (falls back to system preference)
-- **`mnblog` CLI** for agents: `init` → `new` → `check` → `publish`
-- A small **local editor** stub for humans (optional; publish still goes through the CLI)
+- **`mnblog` CLI** for agents: `init` → `new` → `check` → `publish`, plus `ask` / `desk` (launch local Claude Code / Codex)
+- A small **local editor** stub for humans (optional; publish still goes through the CLI; web session Desk is v0.3)
 
 ---
 
@@ -152,14 +152,30 @@ mnblog new "Title" --tags a,b
 → mnblog publish -m "post: Title"
 ```
 
+For a local Claude Code / Codex session in the site (v0.2):
+
+```bash
+cd my-blog
+mnblog desk                      # interactive: launch claude (or codex) in the site root
+mnblog ask "draft a post about X"  # one-shot: claude -p … / or codex exec …
+mnblog desk --agent codex
+mnblog ask --agent auto "…" -- --output-format json   # flags after -- pass through
+```
+
 | Command | What it does |
 |---------|----------------|
-| `mnblog init [dir]` | Starter site + vendored theme |
+| `mnblog init [dir]` | Starter site + vendored theme + AGENTS/skill |
 | `mnblog new "title"` | New post with front matter |
 | `mnblog check [path]` | Validate front matter + date filename |
 | `mnblog publish` | `git add` / `commit` / `push` (`--dry-run` supported) |
 | `mnblog serve` | `bundle exec jekyll serve` when Bundler is available |
-| `mnblog editor` | Serve `editor/` on `http://127.0.0.1:4173/` |
+| `mnblog editor` | Serve `editor/` on `http://127.0.0.1:4173/` (human stub) |
+| `mnblog desk` | Interactive `claude` / `codex` in the site root |
+| `mnblog ask "…"` | One-shot prompt; no prompt → falls back to `desk` |
+
+`ask` / `desk` resolve the nearest folder with `_config.yml` **and** `_posts/`, copy `AGENTS.md` + `skills/mnblog/` from the package if missing, and detect `claude` / `codex` on PATH (`--agent auto` prefers Claude when both exist). **mnblog never asks for cloud API keys** — it reuses whatever login those CLIs already have.
+
+Honest limits: Codex one-shot is `codex exec` (not `-p`); a clear error if neither binary is installed; the web Desk (posts + live chat) waits for **v0.3**.
 
 Zero npm dependencies for the CLI (Node ≥ 18). Optional: `package.json` exposes the `mnblog` bin.
 
@@ -228,11 +244,11 @@ Google Fonts are linked for Source Sans 3, Source Serif 4, and JetBrains Mono. W
 _layouts/  _includes/  _sass/   theme
 assets/                     CSS entry, JS, favicon
 css/  js/                   same assets mirrored for copy-paste sites
-bin/mnblog                  agent CLI
+bin/mnblog                  agent CLI (includes ask / desk)
 example/                    demo site + 3 sample posts + parchment covers
-editor/                     human stub
+editor/                     human stub (not the agent path)
 docs/assets/readme/         README screenshots
-AGENTS.md  skills/          agent docs
+AGENTS.md  skills/          agent docs + skill
 ```
 
 **Not** included: personal posts, personal `img/`, submodules, or migrating [miniLV.github.io](https://github.com/miniLV/miniLV.github.io). That stay-on-the-blog migration is a follow-up.
@@ -241,7 +257,7 @@ AGENTS.md  skills/          agent docs
 
 ## Status
 
-**v0.1.2** — sample post covers are soft parchment washes; no-cover card fallbacks are softer. Theme + CLI + zh/en README screenshots still the baseline.
+**v0.2.0** — `mnblog ask` / `mnblog desk` launch local Claude Code or Codex in the site directory (with AGENTS.md + skill). Web session Desk remains v0.3.
 
 ## License
 

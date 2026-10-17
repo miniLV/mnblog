@@ -1,15 +1,16 @@
 #!/usr/bin/env node
 /**
  * mnblog — thin agent-friendly CLI for the mnblog Jekyll theme.
- * Zero npm dependencies. Commands: init | new | check | publish | serve | editor
+ * Zero npm dependencies.
+ * Commands: init | new | check | publish | serve | editor | ask | desk
  */
 "use strict";
 
 const fs = require("fs");
 const path = require("path");
-const { spawnSync, execSync } = require("child_process");
+const { spawnSync, spawn } = require("child_process");
 
-const VERSION = "0.1.2";
+const VERSION = "0.2.0";
 const ROOT = path.resolve(__dirname, "..");
 
 function usage(code = 0) {
@@ -22,6 +23,8 @@ Usage:
   mnblog publish [--message|-m] [--dry-run]
   mnblog serve                       Run or print jekyll serve
   mnblog editor                      Serve editor/ locally
+  mnblog ask [--agent claude|codex|auto] [prompt...] [-- agent-args...]
+  mnblog desk [--agent claude|codex|auto] [-- agent-args...]
   mnblog help | --help | -h
   mnblog version | --version | -v
 
@@ -32,6 +35,14 @@ new options:
   --summary text   Optional summary
   --author name    Default from _config.yml title or "author"
   --date ISO       Override date (default: now, Asia/Shanghai wall clock if TZ set)
+
+ask / desk:
+  Resolve the nearest site root (_config.yml + _posts/).
+  Ensure AGENTS.md and skills/mnblog/ are present (copy from package if missing).
+  Launch the local Claude Code (\`claude\`) or Codex (\`codex\`) CLI — no cloud keys in mnblog.
+  --agent auto     Prefer claude when both exist (default)
+  desk             Interactive TTY session in the site root
+  ask              One-shot: claude -p … / codex exec … ; without a prompt, falls back to desk
 
 Agent tips:
   Prefer editing Markdown files directly, then mnblog check && mnblog publish.
@@ -44,11 +55,6 @@ Agent tips:
 function die(msg, code = 1) {
   process.stderr.write(`mnblog: ${msg}\n`);
   process.exit(code);
-}
-
-function argsAfter(argv, cmd) {
-  const i = argv.indexOf(cmd);
-  return i >= 0 ? argv.slice(i + 1) : argv.slice(2);
 }
 
 function parseFlags(argv) {
@@ -69,8 +75,37 @@ function parseFlags(argv) {
   return flags;
 }
 
+/** Parse ask/desk args: --agent, positional prompt, and pass-through after -- */
+function parseAgentArgs(argv) {
+  const flags = { agent: "auto", _: [], passthrough: [] };
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (a === "--") {
+      flags.passthrough = argv.slice(i + 1);
+      break;
+    }
+    if (a === "--agent") {
+      const v = argv[++i];
+      if (!v || v.startsWith("-")) die("usage: --agent claude|codex|auto");
+      flags.agent = v;
+      continue;
+    }
+    if (a.startsWith("--agent=")) {
+      flags.agent = a.slice("--agent=".length);
+      continue;
+    }
+    if (a === "--help" || a === "-h") usage(0);
+    if (a.startsWith("-")) die(`unknown flag: ${a} (pass agent flags after --)`);
+    flags._.push(a);
+  }
+  const allowed = new Set(["auto", "claude", "codex"]);
+  if (!allowed.has(flags.agent)) {
+    die(`invalid --agent ${flags.agent} (use claude|codex|auto)`);
+  }
+  return flags;
+}
+
 function shanghaiNow() {
-  // Format YYYY-MM-DD HH:mm:ss +0800 using Asia/Shanghai
   const fmt = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Shanghai",
     year: "numeric",
@@ -84,7 +119,6 @@ function shanghaiNow() {
   const parts = Object.fromEntries(
     fmt.formatToParts(new Date()).map((p) => [p.type, p.value])
   );
-  // en-CA gives YYYY-MM-DD; hour may be 24 in some engines — normalize
   let hour = parts.hour === "24" ? "00" : parts.hour;
   return {
     dateFile: `${parts.year}-${parts.month}-${parts.day}`,
@@ -93,16 +127,19 @@ function shanghaiNow() {
 }
 
 function slugify(title) {
-  return String(title)
-    .trim()
-    .toLowerCase()
-    .replace(/['"]/g, "")
-    .replace(/[^a-z0-9\u4e00-\u9fff]+/gi, "-")
-    .replace(/^-+|-+$/g, "")
-    .replace(/-{2,}/g, "-")
-    .slice(0, 80) || "post";
+  return (
+    String(title)
+      .trim()
+      .toLowerCase()
+      .replace(/['"]/g, "")
+      .replace(/[^a-z0-9\u4e00-\u9fff]+/gi, "-")
+      .replace(/^-+|-+$/g, "")
+      .replace(/-{2,}/g, "-")
+      .slice(0, 80) || "post"
+  );
 }
 
+/** Soft finder for content commands: _config.yml OR _posts */
 function findSiteRoot(start = process.cwd()) {
   let dir = path.resolve(start);
   for (;;) {
@@ -114,6 +151,23 @@ function findSiteRoot(start = process.cwd()) {
     }
     const parent = path.dirname(dir);
     if (parent === dir) return process.cwd();
+    dir = parent;
+  }
+}
+
+/** Strict finder for ask/desk: need both _config.yml and _posts/ */
+function findBlogSiteRoot(start = process.cwd()) {
+  let dir = path.resolve(start);
+  for (;;) {
+    const hasConfig = fs.existsSync(path.join(dir, "_config.yml"));
+    const hasPosts = fs.existsSync(path.join(dir, "_posts"));
+    if (hasConfig && hasPosts) return dir;
+    const parent = path.dirname(dir);
+    if (parent === dir) {
+      die(
+        "no blog site found (need _config.yml + _posts/). cd into a site from `mnblog init`, or pass nothing and run from that directory."
+      );
+    }
     dir = parent;
   }
 }
@@ -137,6 +191,122 @@ function copyDir(src, dest) {
   }
 }
 
+function commandExists(name) {
+  // Prefer POSIX command -v; avoid shell injection (name is a fixed token).
+  if (!/^[a-zA-Z0-9_-]+$/.test(name)) return null;
+  const r = spawnSync("sh", ["-c", `command -v ${name}`], {
+    encoding: "utf8",
+  });
+  if (r.status === 0 && r.stdout.trim()) return r.stdout.trim();
+  return null;
+}
+
+/**
+ * Detect local agent CLIs. Returns { name, bin } or dies with a clear message.
+ * auto → prefer claude when both exist.
+ */
+function resolveAgent(preference) {
+  const claude = commandExists("claude");
+  const codex = commandExists("codex");
+  const want = preference || "auto";
+
+  if (want === "claude") {
+    if (!claude) {
+      die(
+        "claude not found on PATH. Install Claude Code (https://code.claude.com) and ensure `claude` works in this shell."
+      );
+    }
+    return { name: "claude", bin: claude };
+  }
+  if (want === "codex") {
+    if (!codex) {
+      die(
+        "codex not found on PATH. Install OpenAI Codex CLI and ensure `codex` works in this shell."
+      );
+    }
+    return { name: "codex", bin: codex };
+  }
+  // auto
+  if (claude) return { name: "claude", bin: claude };
+  if (codex) return { name: "codex", bin: codex };
+  die(
+    "neither `claude` nor `codex` found on PATH.\n" +
+      "  Install Claude Code (https://code.claude.com) and/or the OpenAI Codex CLI,\n" +
+      "  then re-run: mnblog desk   or   mnblog ask \"…\"\n" +
+      "  mnblog does not store API keys — use whatever login those CLIs already use."
+  );
+}
+
+/**
+ * Ensure AGENTS.md + skills/mnblog/ exist in the site (copy from package if missing).
+ * Returns { agentsPath, skillPath, copied: string[] }
+ */
+function ensureAgentsAndSkill(site) {
+  const copied = [];
+  const agentsSrc = path.join(ROOT, "AGENTS.md");
+  const agentsDest = path.join(site, "AGENTS.md");
+  if (!fs.existsSync(agentsDest)) {
+    if (!fs.existsSync(agentsSrc)) die(`package missing AGENTS.md at ${agentsSrc}`);
+    fs.copyFileSync(agentsSrc, agentsDest);
+    copied.push("AGENTS.md");
+  }
+
+  const skillSrcDir = path.join(ROOT, "skills", "mnblog");
+  const skillDestDir = path.join(site, "skills", "mnblog");
+  const skillDest = path.join(skillDestDir, "SKILL.md");
+  if (!fs.existsSync(skillDest)) {
+    if (!fs.existsSync(path.join(skillSrcDir, "SKILL.md"))) {
+      die(`package missing skills/mnblog/SKILL.md`);
+    }
+    copyDir(skillSrcDir, skillDestDir);
+    copied.push("skills/mnblog/");
+  }
+
+  return {
+    agentsPath: agentsDest,
+    skillPath: skillDest,
+    packageSkillPath: path.join(skillSrcDir, "SKILL.md"),
+    copied,
+  };
+}
+
+function printAgentContext(site, ctx, agent) {
+  process.stdout.write(`mnblog desk/ask → site ${site}\n`);
+  process.stdout.write(`  agent: ${agent.name} (${agent.bin})\n`);
+  process.stdout.write(`  AGENTS.md: ${ctx.agentsPath}\n`);
+  process.stdout.write(`  skill:     ${ctx.skillPath}\n`);
+  if (ctx.copied.length) {
+    process.stdout.write(`  copied:    ${ctx.copied.join(", ")}\n`);
+  }
+}
+
+function runInherit(cmd, args, opts = {}) {
+  return spawnSync(cmd, args, { stdio: "inherit", ...opts });
+}
+
+function run(cmd, args, opts = {}) {
+  return spawnSync(cmd, args, { stdio: "inherit", ...opts });
+}
+
+function spawnAgentInteractive(agent, args, cwd) {
+  // Interactive: need a real TTY when available; inherit always.
+  const child = spawn(agent.bin, args, {
+    cwd,
+    stdio: "inherit",
+    env: process.env,
+  });
+  child.on("error", (err) => {
+    die(`failed to launch ${agent.name}: ${err.message}`);
+  });
+  child.on("exit", (code, signal) => {
+    if (signal) {
+      process.kill(process.pid, signal);
+      return;
+    }
+    process.exit(code == null ? 1 : code);
+  });
+}
+
 function cmdInit(argv) {
   const flags = parseFlags(argv);
   const target = path.resolve(flags._[0] || "my-blog");
@@ -145,19 +315,30 @@ function cmdInit(argv) {
   }
   fs.mkdirSync(target, { recursive: true });
 
-  // Example site content
   copyDir(path.join(ROOT, "example"), target);
 
-  // Vendor theme so jekyll serve works without remote_theme fetch
   for (const dir of ["_layouts", "_includes", "_sass", "assets", "css", "js"]) {
     const src = path.join(ROOT, dir);
     if (fs.existsSync(src)) copyDir(src, path.join(target, dir));
   }
 
-  // Point AGENTS.md / skill hint
   const agentsSrc = path.join(ROOT, "AGENTS.md");
   if (fs.existsSync(agentsSrc)) {
     fs.copyFileSync(agentsSrc, path.join(target, "AGENTS.md"));
+  }
+  const skillSrc = path.join(ROOT, "skills", "mnblog");
+  if (fs.existsSync(path.join(skillSrc, "SKILL.md"))) {
+    copyDir(skillSrc, path.join(target, "skills", "mnblog"));
+  }
+
+  // Convenience: symlink or copy CLI into site bin/
+  const siteBin = path.join(target, "bin");
+  fs.mkdirSync(siteBin, { recursive: true });
+  fs.copyFileSync(path.join(ROOT, "bin", "mnblog"), path.join(siteBin, "mnblog"));
+  try {
+    fs.chmodSync(path.join(siteBin, "mnblog"), 0o755);
+  } catch (_) {
+    /* ignore */
   }
 
   process.stdout.write(
@@ -167,7 +348,8 @@ function cmdInit(argv) {
       `  # edit _config.yml (title, url, nav)\n` +
       `  bundle install   # needs Ruby + Bundler\n` +
       `  bundle exec jekyll serve\n` +
-      `  # or: mnblog new "My post" && mnblog publish\n`
+      `  # or: ./bin/mnblog new "My post" && ./bin/mnblog publish\n` +
+      `  # agent session: ./bin/mnblog desk\n`
   );
 }
 
@@ -201,8 +383,7 @@ function cmdNew(argv) {
   const filepath = path.join(dir, filename);
   if (fs.existsSync(filepath)) die(`already exists: ${filepath}`);
 
-  const author =
-    flags.author || readConfigTitle(site) || "author";
+  const author = flags.author || readConfigTitle(site) || "author";
   const tags = (flags.tags || "")
     .split(",")
     .map((t) => t.trim())
@@ -268,7 +449,6 @@ function cmdCheck(argv) {
       if (!/^date:\s*.+/m.test(fm)) problems.push("missing date");
     }
 
-    // Filename convention for _posts
     if (file.includes(`${path.sep}_posts${path.sep}`)) {
       if (!/^\d{4}-\d{2}-\d{2}-.+\.md$/.test(base)) {
         problems.push("filename should be YYYY-MM-DD-slug.md");
@@ -283,10 +463,6 @@ function cmdCheck(argv) {
     }
   }
   if (errors) process.exit(1);
-}
-
-function run(cmd, args, opts = {}) {
-  return spawnSync(cmd, args, { stdio: "inherit", ...opts });
 }
 
 function cmdPublish(argv) {
@@ -364,6 +540,68 @@ function cmdEditor() {
   process.exit(r.status || 0);
 }
 
+function prepareAgentSession(argv) {
+  const flags = parseAgentArgs(argv);
+  const site = findBlogSiteRoot();
+  const ctx = ensureAgentsAndSkill(site);
+  const agent = resolveAgent(flags.agent);
+  printAgentContext(site, ctx, agent);
+  return { flags, site, ctx, agent };
+}
+
+function cmdDesk(argv) {
+  const { flags, site, agent } = prepareAgentSession(argv);
+  const args = flags.passthrough.slice();
+  // Optional: if positional tokens exist on desk, treat as initial prompt hint for claude
+  const hint = flags._.join(" ").trim();
+  if (hint) {
+    if (agent.name === "claude") {
+      // Interactive Claude accepts an initial prompt as a positional arg
+      args.unshift(hint);
+    } else {
+      process.stdout.write(
+        `note: desk with Codex ignores positional prompt; paste it in the TUI, or use:\n` +
+          `  mnblog ask --agent codex ${JSON.stringify(hint)}\n`
+      );
+    }
+  }
+  process.stdout.write(`launching interactive ${agent.name} in ${site} …\n`);
+  spawnAgentInteractive(agent, args, site);
+}
+
+function cmdAsk(argv) {
+  const { flags, site, agent } = prepareAgentSession(argv);
+  const prompt = flags._.join(" ").trim();
+  const extra = flags.passthrough.slice();
+
+  if (!prompt) {
+    process.stdout.write(
+      "mnblog ask: no prompt given — falling back to interactive desk.\n" +
+        "Hint: mnblog ask \"draft a post about X\"\n"
+    );
+    process.stdout.write(`launching interactive ${agent.name} in ${site} …\n`);
+    spawnAgentInteractive(agent, extra, site);
+    return;
+  }
+
+  let args;
+  if (agent.name === "claude") {
+    // Non-interactive: claude -p "prompt" [extra…]
+    args = ["-p", prompt, ...extra];
+  } else {
+    // Codex one-shot: codex exec "prompt" [extra…]
+    // Note: older docs mentioned different flags; exec is the stable non-interactive entry.
+    args = ["exec", prompt, ...extra];
+  }
+
+  process.stdout.write(
+    `ask (${agent.name} one-shot) in ${site}\n` +
+      `  $ ${agent.name} ${args.map((a) => (/\s/.test(a) ? JSON.stringify(a) : a)).join(" ")}\n`
+  );
+  const r = runInherit(agent.bin, args, { cwd: site });
+  process.exit(r.status == null ? 1 : r.status);
+}
+
 function main() {
   const argv = process.argv.slice(2);
   const cmd = argv[0];
@@ -386,6 +624,10 @@ function main() {
       return cmdServe();
     case "editor":
       return cmdEditor();
+    case "ask":
+      return cmdAsk(rest);
+    case "desk":
+      return cmdDesk(rest);
     default:
       die(`unknown command: ${cmd}\nRun mnblog help`);
   }

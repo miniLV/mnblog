@@ -60,8 +60,8 @@
 - 兼容 GitHub Pages（`github-pages` gem / `remote_theme`）
 - 可选 front matter：`summary`、`subtitle`、`cover_image` / `header-img`
 - 深浅色切换，会记住选择（否则跟系统）
-- **`mnblog` CLI**：`init` → `new` → `check` → `publish`
-- 可选的本地 **编辑器雏形**（给人点；发布仍走 CLI）
+- **`mnblog` CLI**：`init` → `new` → `check` → `publish`，以及 `ask` / `desk`（拉起本机 Claude Code / Codex）
+- 可选的本地 **编辑器雏形**（给人点；发布仍走 CLI；v0.3 才做网页会话台）
 
 ---
 
@@ -152,14 +152,30 @@ mnblog new "标题" --tags a,b
 → mnblog publish -m "post: 标题"
 ```
 
+需要本机 Claude Code / Codex 会话时（v0.2）：
+
+```bash
+cd my-blog
+mnblog desk                      # 交互：在站点根目录拉起 claude（或 codex）
+mnblog ask "写一篇关于 X 的草稿"  # 一次性：claude -p … / 或 codex exec …
+mnblog desk --agent codex        # 强制 Codex
+mnblog ask --agent auto "…" -- --output-format json   # -- 之后参数原样传给 agent CLI
+```
+
 | 命令 | 作用 |
 |------|------|
-| `mnblog init [dir]` | 示例站 + 本地主题 |
+| `mnblog init [dir]` | 示例站 + 本地主题 + AGENTS/skill |
 | `mnblog new "title"` | 带 front matter 的新文章 |
 | `mnblog check [path]` | 校验 front matter 与日期文件名 |
 | `mnblog publish` | `git add` / `commit` / `push`（支持 `--dry-run`） |
 | `mnblog serve` | 有 Bundler 时跑 `jekyll serve` |
-| `mnblog editor` | 在 `http://127.0.0.1:4173/` 打开编辑器页 |
+| `mnblog editor` | 在 `http://127.0.0.1:4173/` 打开编辑器页（人用雏形） |
+| `mnblog desk` | 在站点根目录开交互式 `claude` / `codex` |
+| `mnblog ask "…"` | 一次性提问；无 prompt 时退回 `desk` |
+
+`ask` / `desk` 会：定位最近的 `_config.yml` + `_posts/`；若缺 `AGENTS.md` / `skills/mnblog/` 则从本包拷贝；检测 PATH 上的 `claude` / `codex`（`--agent auto` 两者都有时优先 Claude）。**不向 mnblog 配置云端 API key**——沿用你本机已登录的 Claude Code / Codex。
+
+诚实边界：Codex 一次性入口是 `codex exec`（不是 `-p`）；两边都没装会报清晰错误；网页 Desk（左栏文章 + 右栏实时会话）留到 **v0.3**。
 
 CLI 无 npm 依赖（Node ≥ 18）。`package.json` 里挂了 `mnblog` bin，可按需安装。
 
@@ -228,11 +244,11 @@ v0.1：Chromium 下用 File System Access 打开站点目录、改 `_posts/*.md`
 _layouts/  _includes/  _sass/   主题
 assets/                     样式入口、JS、favicon
 css/  js/                   同套资源，方便整仓拷贝
-bin/mnblog                  agent CLI
+bin/mnblog                  agent CLI（含 ask / desk）
 example/                    演示站 + 3 篇样例 + 羊皮纸封面
-editor/                     给人用的雏形
+editor/                     给人用的雏形（非 agent 主路径）
 docs/assets/readme/         README 截图
-AGENTS.md  skills/          agent 文档
+AGENTS.md  skills/          agent 文档 + skill
 ```
 
 **不包含**：个人文章、个人 `img/`、子模块，也不包含把 [miniLV.github.io](https://github.com/miniLV/miniLV.github.io) 迁到消费本主题 —— 那是后续工作。
@@ -241,7 +257,7 @@ AGENTS.md  skills/          agent 文档
 
 ## 状态
 
-**v0.1.2** — 示例文章封面换成羊皮纸感软渐变；无图时卡片占位也柔和了。主题 + CLI + 中英 README 截图继续可用。
+**v0.2.0** — `mnblog ask` / `mnblog desk`：在站点目录拉起本机 Claude Code 或 Codex（带 AGENTS.md + skill）。网页会话台仍是 v0.3。
 
 ## 许可
 

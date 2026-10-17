@@ -8,13 +8,15 @@ You are editing a **Jekyll** site that uses the **mnblog** theme (warm ivory / c
 - Validate with `mnblog check` before commit.
 - Publish with `mnblog publish` (git add/commit/push) or equivalent `gh` / Contents API. Never drive github.com in a browser.
 - Keep front matter honest. Put substance in the Markdown body.
+- For a local coding-agent session in this site: `mnblog desk` or `mnblog ask "…"`. Those launch **Claude Code** (`claude`) or **Codex** (`codex`) already installed on the machine — mnblog does not hold API keys.
 
 ## Do not
 
 - Invent cover images, header images, or asset URLs that are not in the repo.
 - Commit personal secrets, private emails, or large binary dumps into the theme.
 - Change theme CSS casually in a content-only site; prefer content + config.
-- Use the local editor as the agent primary path — it is a human stub. Agents use CLI + files.
+- Use the local web editor as the agent primary path — it is a human stub. Agents use CLI + files.
+- Expect a browser “Desk” UI yet (planned for v0.3). v0.2 is CLI launch only.
 
 ## Post front matter
 
@@ -66,7 +68,18 @@ mnblog check
 mnblog publish -m "post: Title"
 mnblog serve          # needs Ruby/Bundler
 mnblog editor         # human stub only
+mnblog desk [--agent claude|codex|auto]
+mnblog ask  [--agent claude|codex|auto] "prompt…"
 ```
+
+### ask / desk (v0.2)
+
+- Resolve the nearest directory that has **both** `_config.yml` and `_posts/`.
+- Copy `AGENTS.md` and `skills/mnblog/` from the mnblog package if missing.
+- Detect `claude` / `codex` on PATH. `--agent auto` prefers Claude Code when both exist.
+- `desk`: interactive TTY in the site root. Extra flags after `--` go to the agent CLI.
+- `ask`: one-shot when possible — `claude -p "…"` or `codex exec "…"`. No prompt → falls back to `desk`.
+- Auth stays with those CLIs (whatever login you already use). mnblog never asks for cloud API keys.
 
 ## Skill
 

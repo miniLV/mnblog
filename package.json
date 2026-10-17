@@ -1,7 +1,7 @@
 {
   "name": "mnblog",
-  "version": "0.1.2",
-  "description": "Claude-warm Jekyll blog theme with a thin agent CLI",
+  "version": "0.2.0",
+  "description": "Warm editorial Jekyll theme + agent CLI (ask/desk launch local Claude/Codex)",
   "bin": {
     "mnblog": "./bin/mnblog"
   },
