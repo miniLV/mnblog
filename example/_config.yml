@@ -1,0 +1,69 @@
+title: mnblog
+SEOTitle: mnblog Demo
+description: "A warm editorial Jekyll theme for people and agents."
+url: ""
+baseurl: ""
+language: "en"
+timezone: "Asia/Shanghai"
+
+permalink: pretty
+paginate: 8
+paginate_path: "/page/:num/"
+plugins:
+  - jekyll-paginate
+  - jekyll-sitemap
+
+markdown: kramdown
+highlighter: rouge
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+
+# Prefer local vendored theme (mnblog init copies layouts/includes/sass/assets).
+# Or switch to remote after publishing:
+# remote_theme: miniLV/mnblog
+# and remove local _layouts/_includes/_sass/assets/css/js.
+
+theme_stylesheet: "/assets/css/style.css"
+theme_script: "/assets/js/site.js"
+favicon: "/assets/favicon.svg"
+brand_mark: "m"
+default_eyebrow: "mnblog demo"
+legacy_header_image: ""
+hero_title: "Write in Markdown. Ship with a CLI."
+hero_description: "mnblog is a Claude-warm Jekyll theme plus a thin agent CLI. Humans edit posts; agents run mnblog new / check / publish."
+hero_primary_cta:
+  label: "Latest posts"
+  url: "#latest-posts"
+hero_secondary_cta:
+  label: "Tags"
+  url: "/tags/"
+
+nav_items:
+  - title: "Home"
+    url: "/"
+  - title: "Tags"
+    url: "/tags/"
+  - title: "GitHub"
+    url: "https://github.com/miniLV/mnblog"
+
+social_links:
+  - title: "GitHub"
+    label: "github"
+    url: "https://github.com/miniLV/mnblog"
+
+footer_note: "Theme Apache-2.0. Keep writing."
+
+exclude:
+  - README.md
+  - README.zh.md
+  - Gemfile
+  - Gemfile.lock
+  - vendor
+  - node_modules
+  - bin
+  - skills
+  - editor
+  - package.json
+  - mnblog.gemspec
+  - AGENTS.md

@@ -1,0 +1,394 @@
+#!/usr/bin/env node
+/**
+ * mnblog — thin agent-friendly CLI for the mnblog Jekyll theme.
+ * Zero npm dependencies. Commands: init | new | check | publish | serve | editor
+ */
+"use strict";
+
+const fs = require("fs");
+const path = require("path");
+const { spawnSync, execSync } = require("child_process");
+
+const VERSION = "0.1.0";
+const ROOT = path.resolve(__dirname, "..");
+
+function usage(code = 0) {
+  const text = `mnblog ${VERSION} — Jekyll theme + agent CLI
+
+Usage:
+  mnblog init [dir]                  Create a site from example/ (vendors theme)
+  mnblog new "title" [options]       Create _posts/YYYY-MM-DD-slug.md
+  mnblog check [path]                Validate post front matter / filename
+  mnblog publish [--message|-m] [--dry-run]
+  mnblog serve                       Run or print jekyll serve
+  mnblog editor                      Serve editor/ locally
+  mnblog help | --help | -h
+  mnblog version | --version | -v
+
+new options:
+  --tags a,b,c     Comma-separated tags
+  --draft          Write under _drafts/ instead of _posts/
+  --subtitle text  Optional subtitle
+  --summary text   Optional summary
+  --author name    Default from _config.yml title or "author"
+  --date ISO       Override date (default: now, Asia/Shanghai wall clock if TZ set)
+
+Agent tips:
+  Prefer editing Markdown files directly, then mnblog check && mnblog publish.
+  Do not invent images. Do not use a browser for GitHub — use gh / git.
+`;
+  process.stdout.write(text);
+  process.exit(code);
+}
+
+function die(msg, code = 1) {
+  process.stderr.write(`mnblog: ${msg}\n`);
+  process.exit(code);
+}
+
+function argsAfter(argv, cmd) {
+  const i = argv.indexOf(cmd);
+  return i >= 0 ? argv.slice(i + 1) : argv.slice(2);
+}
+
+function parseFlags(argv) {
+  const flags = { _: [] };
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (a === "--dry-run") flags.dryRun = true;
+    else if (a === "--draft") flags.draft = true;
+    else if (a === "--tags" || a === "-t") flags.tags = argv[++i];
+    else if (a === "--subtitle") flags.subtitle = argv[++i];
+    else if (a === "--summary") flags.summary = argv[++i];
+    else if (a === "--author") flags.author = argv[++i];
+    else if (a === "--date") flags.date = argv[++i];
+    else if (a === "--message" || a === "-m") flags.message = argv[++i];
+    else if (a.startsWith("-")) die(`unknown flag: ${a}`);
+    else flags._.push(a);
+  }
+  return flags;
+}
+
+function shanghaiNow() {
+  // Format YYYY-MM-DD HH:mm:ss +0800 using Asia/Shanghai
+  const fmt = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+  const parts = Object.fromEntries(
+    fmt.formatToParts(new Date()).map((p) => [p.type, p.value])
+  );
+  // en-CA gives YYYY-MM-DD; hour may be 24 in some engines — normalize
+  let hour = parts.hour === "24" ? "00" : parts.hour;
+  return {
+    dateFile: `${parts.year}-${parts.month}-${parts.day}`,
+    dateFront: `${parts.year}-${parts.month}-${parts.day} ${hour}:${parts.minute}:${parts.second} +0800`,
+  };
+}
+
+function slugify(title) {
+  return String(title)
+    .trim()
+    .toLowerCase()
+    .replace(/['"]/g, "")
+    .replace(/[^a-z0-9\u4e00-\u9fff]+/gi, "-")
+    .replace(/^-+|-+$/g, "")
+    .replace(/-{2,}/g, "-")
+    .slice(0, 80) || "post";
+}
+
+function findSiteRoot(start = process.cwd()) {
+  let dir = path.resolve(start);
+  for (;;) {
+    if (
+      fs.existsSync(path.join(dir, "_config.yml")) ||
+      fs.existsSync(path.join(dir, "_posts"))
+    ) {
+      return dir;
+    }
+    const parent = path.dirname(dir);
+    if (parent === dir) return process.cwd();
+    dir = parent;
+  }
+}
+
+function readConfigTitle(siteRoot) {
+  const cfg = path.join(siteRoot, "_config.yml");
+  if (!fs.existsSync(cfg)) return null;
+  const text = fs.readFileSync(cfg, "utf8");
+  const m = text.match(/^title:\s*["']?([^"'#\n]+)/m);
+  return m ? m[1].trim() : null;
+}
+
+function copyDir(src, dest) {
+  fs.mkdirSync(dest, { recursive: true });
+  for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+    if (entry.name === ".git" || entry.name === "node_modules") continue;
+    const from = path.join(src, entry.name);
+    const to = path.join(dest, entry.name);
+    if (entry.isDirectory()) copyDir(from, to);
+    else fs.copyFileSync(from, to);
+  }
+}
+
+function cmdInit(argv) {
+  const flags = parseFlags(argv);
+  const target = path.resolve(flags._[0] || "my-blog");
+  if (fs.existsSync(target) && fs.readdirSync(target).length > 0) {
+    die(`target not empty: ${target}`);
+  }
+  fs.mkdirSync(target, { recursive: true });
+
+  // Example site content
+  copyDir(path.join(ROOT, "example"), target);
+
+  // Vendor theme so jekyll serve works without remote_theme fetch
+  for (const dir of ["_layouts", "_includes", "_sass", "assets", "css", "js"]) {
+    const src = path.join(ROOT, dir);
+    if (fs.existsSync(src)) copyDir(src, path.join(target, dir));
+  }
+
+  // Point AGENTS.md / skill hint
+  const agentsSrc = path.join(ROOT, "AGENTS.md");
+  if (fs.existsSync(agentsSrc)) {
+    fs.copyFileSync(agentsSrc, path.join(target, "AGENTS.md"));
+  }
+
+  process.stdout.write(
+    `Created site at ${target}\n` +
+      `Next:\n` +
+      `  cd ${target}\n` +
+      `  # edit _config.yml (title, url, nav)\n` +
+      `  bundle install   # needs Ruby + Bundler\n` +
+      `  bundle exec jekyll serve\n` +
+      `  # or: mnblog new "My post" && mnblog publish\n`
+  );
+}
+
+function cmdNew(argv) {
+  const flags = parseFlags(argv);
+  const title = flags._.join(" ").trim();
+  if (!title) die('usage: mnblog new "title" [--tags a,b] [--draft]');
+
+  const site = findSiteRoot();
+  let frontDate;
+  let fileDate;
+  if (flags.date) {
+    const m = String(flags.date).match(/^(\d{4}-\d{2}-\d{2})/);
+    if (!m) die(`bad --date: ${flags.date}`);
+    fileDate = m[1];
+    frontDate = String(flags.date).includes("+")
+      ? String(flags.date)
+      : `${m[1]} 12:00:00 +0800`;
+  } else {
+    const now = shanghaiNow();
+    fileDate = now.dateFile;
+    frontDate = now.dateFront;
+  }
+
+  const slug = slugify(title);
+  const dirName = flags.draft ? "_drafts" : "_posts";
+  const dir = path.join(site, dirName);
+  fs.mkdirSync(dir, { recursive: true });
+
+  const filename = flags.draft ? `${slug}.md` : `${fileDate}-${slug}.md`;
+  const filepath = path.join(dir, filename);
+  if (fs.existsSync(filepath)) die(`already exists: ${filepath}`);
+
+  const author =
+    flags.author || readConfigTitle(site) || "author";
+  const tags = (flags.tags || "")
+    .split(",")
+    .map((t) => t.trim())
+    .filter(Boolean);
+
+  const lines = [
+    "---",
+    "layout: post",
+    `title: ${JSON.stringify(title)}`,
+  ];
+  if (flags.subtitle) lines.push(`subtitle: ${JSON.stringify(flags.subtitle)}`);
+  lines.push(`date: ${frontDate}`);
+  lines.push(`author: ${JSON.stringify(author)}`);
+  if (tags.length) {
+    lines.push("tags:");
+    for (const t of tags) lines.push(`    - ${t}`);
+  }
+  if (flags.summary) lines.push(`summary: ${JSON.stringify(flags.summary)}`);
+  lines.push("---", "", `<!-- write the post -->`, "");
+
+  fs.writeFileSync(filepath, lines.join("\n"), "utf8");
+  process.stdout.write(`${filepath}\n`);
+}
+
+function parseFrontMatter(text) {
+  if (!text.startsWith("---")) return null;
+  const end = text.indexOf("\n---", 3);
+  if (end < 0) return null;
+  return text.slice(3, end).trim();
+}
+
+function cmdCheck(argv) {
+  const flags = parseFlags(argv);
+  const site = findSiteRoot();
+  let targets = flags._.map((p) => path.resolve(p));
+  if (targets.length === 0) {
+    const posts = path.join(site, "_posts");
+    if (!fs.existsSync(posts)) die(`no _posts in ${site}`);
+    targets = fs
+      .readdirSync(posts)
+      .filter((f) => f.endsWith(".md"))
+      .map((f) => path.join(posts, f));
+  }
+
+  let errors = 0;
+  for (const file of targets) {
+    if (!fs.existsSync(file)) {
+      process.stderr.write(`MISSING ${file}\n`);
+      errors++;
+      continue;
+    }
+    const base = path.basename(file);
+    const text = fs.readFileSync(file, "utf8");
+    const fm = parseFrontMatter(text);
+    const problems = [];
+
+    if (!fm) problems.push("missing YAML front matter");
+    else {
+      if (!/^layout:\s*post\b/m.test(fm) && !/^layout:\s*["']?post/m.test(fm)) {
+        problems.push("layout should be post");
+      }
+      if (!/^title:\s*.+/m.test(fm)) problems.push("missing title");
+      if (!/^date:\s*.+/m.test(fm)) problems.push("missing date");
+    }
+
+    // Filename convention for _posts
+    if (file.includes(`${path.sep}_posts${path.sep}`)) {
+      if (!/^\d{4}-\d{2}-\d{2}-.+\.md$/.test(base)) {
+        problems.push("filename should be YYYY-MM-DD-slug.md");
+      }
+    }
+
+    if (problems.length) {
+      errors++;
+      process.stderr.write(`FAIL ${file}\n  - ${problems.join("\n  - ")}\n`);
+    } else {
+      process.stdout.write(`OK   ${file}\n`);
+    }
+  }
+  if (errors) process.exit(1);
+}
+
+function run(cmd, args, opts = {}) {
+  return spawnSync(cmd, args, { stdio: "inherit", ...opts });
+}
+
+function cmdPublish(argv) {
+  const flags = parseFlags(argv);
+  const site = findSiteRoot();
+  const message =
+    flags.message || `content: update ${shanghaiNow().dateFile}`;
+
+  if (!fs.existsSync(path.join(site, ".git"))) {
+    die(`not a git repo: ${site} (git init + remote first)`);
+  }
+
+  const status = spawnSync("git", ["status", "--porcelain"], {
+    cwd: site,
+    encoding: "utf8",
+  });
+  if (status.status !== 0) die("git status failed");
+  if (!status.stdout.trim()) {
+    process.stdout.write("nothing to publish\n");
+    return;
+  }
+
+  process.stdout.write(status.stdout);
+  if (flags.dryRun) {
+    process.stdout.write(`[dry-run] would commit: ${message}\n`);
+    process.stdout.write(`[dry-run] would git push\n`);
+    return;
+  }
+
+  let r = run("git", ["add", "-A"], { cwd: site });
+  if (r.status !== 0) die("git add failed");
+  r = run("git", ["commit", "-m", message], { cwd: site });
+  if (r.status !== 0) die("git commit failed (maybe empty?)");
+  r = run("git", ["push"], { cwd: site });
+  if (r.status !== 0) die("git push failed — use gh auth / check remote");
+  process.stdout.write("published\n");
+}
+
+function cmdServe() {
+  const site = findSiteRoot();
+  const hasBundle =
+    fs.existsSync(path.join(site, "Gemfile")) &&
+    spawnSync("bundle", ["--version"], { encoding: "utf8" }).status === 0;
+
+  if (hasBundle) {
+    process.stdout.write(`Serving with bundle exec jekyll serve in ${site}\n`);
+    const r = run("bundle", ["exec", "jekyll", "serve"], { cwd: site });
+    process.exit(r.status || 0);
+  }
+
+  process.stdout.write(
+    `Ruby/Bundler not ready in ${site}.\n` +
+      `Install deps, then run:\n` +
+      `  bundle install\n` +
+      `  bundle exec jekyll serve\n` +
+      `Or open the built site on GitHub Pages after publish.\n`
+  );
+}
+
+function cmdEditor() {
+  const editorDir = path.join(ROOT, "editor");
+  if (!fs.existsSync(path.join(editorDir, "index.html"))) {
+    die(`editor missing at ${editorDir}`);
+  }
+  const port = process.env.MNBLOG_EDITOR_PORT || "4173";
+  process.stdout.write(
+    `mnblog editor (v0.1 stub)\n` +
+      `Serving ${editorDir} at http://127.0.0.1:${port}/\n` +
+      `Publish still runs via CLI: mnblog publish\n` +
+      `Ctrl+C to stop.\n`
+  );
+  const r = run("python3", ["-m", "http.server", port, "--bind", "127.0.0.1"], {
+    cwd: editorDir,
+  });
+  process.exit(r.status || 0);
+}
+
+function main() {
+  const argv = process.argv.slice(2);
+  const cmd = argv[0];
+  if (!cmd || cmd === "help" || cmd === "--help" || cmd === "-h") usage(0);
+  if (cmd === "version" || cmd === "--version" || cmd === "-v") {
+    process.stdout.write(`${VERSION}\n`);
+    return;
+  }
+  const rest = argv.slice(1);
+  switch (cmd) {
+    case "init":
+      return cmdInit(rest);
+    case "new":
+      return cmdNew(rest);
+    case "check":
+      return cmdCheck(rest);
+    case "publish":
+      return cmdPublish(rest);
+    case "serve":
+      return cmdServe();
+    case "editor":
+      return cmdEditor();
+    default:
+      die(`unknown command: ${cmd}\nRun mnblog help`);
+  }
+}
+
+main();

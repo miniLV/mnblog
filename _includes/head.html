@@ -1,0 +1,75 @@
+{% capture page_title %}
+  {% if page.title %}
+    {{ page.title }} - {{ site.SEOTitle | default: site.title }}
+  {% else %}
+    {{ site.SEOTitle | default: site.title }}
+  {% endif %}
+{% endcapture %}
+{% capture meta_description %}
+  {% if page.description %}
+    {{ page.description }}
+  {% elsif page.summary %}
+    {{ page.summary }}
+  {% elsif page.subtitle %}
+    {{ page.subtitle }}
+  {% else %}
+    {{ site.description }}
+  {% endif %}
+{% endcapture %}
+{% assign social_image = page.header-img | default: page.cover_image | default: site.default_social_image %}
+{% assign social_image_is_external = false %}
+{% if social_image and social_image contains '://' %}
+  {% assign social_image_is_external = true %}
+{% endif %}
+{% assign stylesheet_path = site.theme_stylesheet | default: '/assets/css/style.css' %}
+{% assign favicon_path = site.favicon | default: '/assets/favicon.svg' %}
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#faf9f5" data-theme-color>
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem("theme");
+        var theme = stored === "dark" || stored === "light"
+          ? stored
+          : (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", theme);
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) {
+          meta.setAttribute("content", theme === "dark" ? "#191815" : "#faf9f5");
+        }
+      } catch (e) {}
+    })();
+  </script>
+
+  <meta name="description" content="{{ meta_description | strip | escape }}">
+  <title>{{ page_title | strip }}</title>
+
+  <link rel="icon" href="{{ favicon_path | relative_url }}">
+  <link rel="canonical" href="{{ page.url | absolute_url }}">
+  <link rel="alternate" type="application/atom+xml" title="{{ site.title }} Feed" href="{{ '/feed.xml' | relative_url }}">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Source+Sans+3:ital,wght@0,300..700;1,300..700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300..700;1,8..60,300..700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{{ stylesheet_path | relative_url }}">
+
+  <meta property="og:title" content="{{ page_title | strip }}">
+  <meta property="og:description" content="{{ meta_description | strip | escape }}">
+  <meta property="og:type" content="{% if page.layout == 'post' %}article{% else %}website{% endif %}">
+  <meta property="og:url" content="{{ page.url | absolute_url }}">
+  {% if social_image %}
+  <meta property="og:image" content="{% if social_image_is_external %}{{ social_image }}{% else %}{{ social_image | absolute_url }}{% endif %}">
+  {% endif %}
+  <meta property="og:site_name" content="{{ site.title }}">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ page_title | strip }}">
+  <meta name="twitter:description" content="{{ meta_description | strip | escape }}">
+  {% if social_image %}
+  <meta name="twitter:image" content="{% if social_image_is_external %}{{ social_image }}{% else %}{{ social_image | absolute_url }}{% endif %}">
+  {% endif %}
+</head>

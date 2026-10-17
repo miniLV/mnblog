@@ -1,0 +1,33 @@
+{
+  "name": "mnblog",
+  "version": "0.1.0",
+  "description": "Claude-warm Jekyll blog theme with a thin agent CLI",
+  "bin": {
+    "mnblog": "./bin/mnblog"
+  },
+  "files": [
+    "bin",
+    "_layouts",
+    "_includes",
+    "_sass",
+    "assets",
+    "css",
+    "js",
+    "example",
+    "editor",
+    "skills",
+    "AGENTS.md",
+    "LICENSE",
+    "README.md",
+    "README.zh.md",
+    "mnblog.gemspec"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/miniLV/mnblog.git"
+  },
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=18"
+  }
+}

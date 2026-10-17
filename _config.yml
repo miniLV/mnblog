@@ -1,0 +1,5 @@
+# Defaults for the theme repository itself (not a full site).
+# Real sites should start from example/ or `mnblog init`.
+title: mnblog
+description: "Warm editorial Jekyll theme with an agent CLI"
+timezone: Asia/Shanghai

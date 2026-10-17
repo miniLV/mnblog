@@ -1,0 +1,86 @@
+---
+layout: default
+---
+
+{% capture article_summary %}
+  {% if page.summary %}
+    {{ page.summary }}
+  {% else %}
+    {{ content | strip_html | strip_newlines | truncate: 200 }}
+  {% endif %}
+{% endcapture %}
+{% assign hero_image = page.cover_image | default: page.header-img %}
+{% if hero_image == site.legacy_header_image %}
+  {% assign hero_image = nil %}
+{% endif %}
+{% assign hero_image_is_external = false %}
+{% if hero_image and hero_image contains '://' %}
+  {% assign hero_image_is_external = true %}
+{% endif %}
+<article class="article-page">
+  <section class="article-hero">
+    <div class="shell article-hero__grid">
+      <div class="article-hero__content">
+        {% if page.tags %}
+          <div class="tag-list">
+            {% for tag in page.tags %}
+              <a class="tag-pill" href="{{ '/tags/' | relative_url }}#tag-{{ tag | slugify }}">{{ tag }}</a>
+            {% endfor %}
+          </div>
+        {% endif %}
+        <h1 class="article-title">{{ page.title }}</h1>
+        {% if page.subtitle %}
+          <p class="article-subtitle">{{ page.subtitle }}</p>
+        {% endif %}
+        <div class="article-meta">
+          <span>{{ page.author | default: site.title }}</span>
+          <span>{{ page.date | date: "%Y.%m.%d" }}</span>
+        </div>
+        {% if page.summary or page.subtitle %}
+          <p class="article-summary">{{ article_summary | strip }}</p>
+        {% endif %}
+      </div>
+      {% if hero_image %}
+        <div class="article-hero__media has-image">
+          <img
+            class="article-hero__image"
+            src="{% if hero_image_is_external %}{{ hero_image }}{% else %}{{ hero_image | relative_url }}{% endif %}"
+            alt="{{ page.title }}">
+        </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="article-section">
+    <div class="shell shell--article">
+      <div class="prose article-body">
+        {{ content }}
+      </div>
+    </div>
+  </section>
+
+  <section class="article-section article-section--nav">
+    <div class="shell shell--article">
+      <div class="article-pagination">
+        {% if page.previous %}
+          <a class="article-nav-card" href="{{ page.previous.url | relative_url }}">
+            <span class="article-nav-card__label">上一篇</span>
+            <strong>{{ page.previous.title }}</strong>
+            {% if page.previous.subtitle %}
+              <span>{{ page.previous.subtitle }}</span>
+            {% endif %}
+          </a>
+        {% endif %}
+        {% if page.next %}
+          <a class="article-nav-card" href="{{ page.next.url | relative_url }}">
+            <span class="article-nav-card__label">下一篇</span>
+            <strong>{{ page.next.title }}</strong>
+            {% if page.next.subtitle %}
+              <span>{{ page.next.subtitle }}</span>
+            {% endif %}
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+</article>

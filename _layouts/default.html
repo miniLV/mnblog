@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="{{ site.language | default: 'zh-CN' }}">
+
+{% include head.html %}
+
+<body class="site-body{% if page.body_class %} {{ page.body_class }}{% endif %}">
+  <a class="skip-link" href="#content">Skip to content</a>
+  {% include nav.html %}
+  <main id="content" class="site-main">
+    {{ content }}
+  </main>
+  {% include footer.html %}
+</body>
+
+</html>

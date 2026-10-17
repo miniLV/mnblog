@@ -1,0 +1,24 @@
+<footer class="site-footer">
+  <div class="shell site-footer__inner">
+    <div class="site-footer__brand">
+      <p class="site-footer__eyebrow">{{ site.default_eyebrow }}</p>
+      <h2 class="site-footer__title">{{ site.title }}</h2>
+      <p class="site-footer__description">{{ site.description }}</p>
+    </div>
+    <div class="site-footer__meta">
+      <div class="site-footer__links">
+        {% for item in site.social_links %}
+          <a class="footer-link" href="{{ item.url }}" target="_blank" rel="noreferrer">
+            <span class="footer-link__label">{{ item.title }}</span>
+            <span class="footer-link__slug">{{ item.label }}</span>
+          </a>
+        {% endfor %}
+      </div>
+      <div class="site-footer__note">
+        <p>Copyright &copy; {{ site.time | date: "%Y" }} {{ site.title }}</p>
+        <p>{{ site.footer_note }}</p>
+      </div>
+    </div>
+  </div>
+</footer>
+<script src="{{ site.theme_script | default: '/assets/js/site.js' | relative_url }}"></script>
