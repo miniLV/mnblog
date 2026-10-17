@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-Hans" data-lang="zh">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>mnblog — 偏编辑气质的 Jekyll 主题</title>
+  <meta name="description" content="偏编辑气质的 Jekyll 主题，加上一层给人和 coding agent 用的 CLI。暖象牙底、clay 强调色、sketchboard 封面、本地 Desk。" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/landing/site.css" />
+  <link rel="icon" href="https://raw.githubusercontent.com/miniLV/mnblog/main/assets/favicon.svg" type="image/svg+xml" />
+</head>
+<body>
+  <header class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="./">
+        <span class="brand-mark">m</span>
+        <span>mnblog</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="https://github.com/miniLV/mnblog"><span class="zh-inline">仓库</span><span class="en-inline">GitHub</span></a>
+        <a href="https://github.com/miniLV/mnblog/blob/main/README.md"><span class="zh-inline">文档</span><span class="en-inline">Docs</span></a>
+        <a href="https://github.com/miniLV/mnblog/releases/latest"><span class="zh-inline">发布</span><span class="en-inline">Releases</span></a>
+        <div class="lang-toggle" role="group" aria-label="Language">
+          <button type="button" data-set-lang="zh" class="is-active">中文</button>
+          <button type="button" data-set-lang="en">EN</button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <p class="hero-eyebrow">Jekyll theme · Agent CLI</p>
+        <h1 class="zh">写博客，也给 agent 一条干净的命令行。</h1>
+        <h1 class="en">A warm blog theme, and a thin CLI for coding agents.</h1>
+        <p class="hero-lead zh">偏编辑气质的 Jekyll 主题：暖象牙底、clay 强调色、字号偏大。Markdown 进 <code>_posts/</code>；人和 agent 共用 <code>mnblog</code> CLI；封面可以用 sketchboard 画出来。</p>
+        <p class="hero-lead en">Ivory canvas, clay accent, Source Serif + Source Sans. Posts stay in <code>_posts/</code>. People and agents share the <code>mnblog</code> CLI. Covers come from sketchboard — no stock-photo hunt.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="https://github.com/miniLV/mnblog#三步上手">
+            <span class="zh-inline">Init a blog</span>
+            <span class="en-inline">Init a blog</span>
+          </a>
+          <a class="btn btn-ghost" href="https://github.com/miniLV/mnblog">GitHub</a>
+        </div>
+        <code class="hero-cmd">./bin/mnblog init ../my-blog</code>
+        <figure class="hero-shot">
+          <img src="assets/readme/home-light.png" alt="mnblog light home" width="1280" height="720" />
+        </figure>
+      </div>
+    </section>
+
+    <section id="look">
+      <div class="wrap">
+        <p class="section-label"><span class="zh-inline">你会看到什么</span><span class="en-inline">What it looks like</span></p>
+        <h2 class="section-title zh">安静的页面，真实的截图。</h2>
+        <h2 class="section-title en">Quiet pages. Real screenshots.</h2>
+        <p class="section-lead zh">首页、文章、Desk、封面 —— 都是仓库里现成的图，不是占位。</p>
+        <p class="section-lead en">Home, post, Desk, covers — assets already in the repo, not placeholders.</p>
+
+        <div class="beats">
+          <article class="beat">
+            <div class="beat-copy">
+              <h3 class="zh">暖象牙的博客气质</h3>
+              <h3 class="en">Warm editorial look</h3>
+              <p class="zh">浅色是象牙底，深色是暖褐黑。Source Serif 做标题，Source Sans 做正文。适合长文，不抢内容的戏。</p>
+              <p class="en">Ivory light mode, warm charcoal dark. Serif headlines, sans body. Built for long reads, not flashy chrome.</p>
+            </div>
+            <div class="beat-media">
+              <img src="assets/readme/post-light.png" alt="Post page" width="960" height="540" loading="lazy" />
+            </div>
+          </article>
+
+          <article class="beat">
+            <div class="beat-copy">
+              <h3 class="zh">Agent 走 CLI，不走网页</h3>
+              <h3 class="en">Agents stay on the CLI</h3>
+              <p class="zh"><code>init → new → check → publish</code>。需要本机 Claude Code / Codex 时用 <code>ask</code> / <code>desk</code>。不向 mnblog 配置云端 API key。</p>
+              <p class="en"><code>init → new → check → publish</code>. Local Claude Code / Codex via <code>ask</code> / <code>desk</code>. mnblog never stores cloud API keys.</p>
+            </div>
+            <div class="beat-media">
+              <img src="assets/readme/cover-agents-prefer-cli.png" alt="Agents prefer CLI cover" width="960" height="540" loading="lazy" />
+            </div>
+          </article>
+
+          <article class="beat">
+            <div class="beat-copy">
+              <h3 class="zh">Desk + sketchboard 封面</h3>
+              <h3 class="en">Desk + sketchboard covers</h3>
+              <p class="zh">本地三栏 Desk 给人点；<code>mnblog cover</code> / <code>draw</code> 把手绘白板图渲成 PNG。有 Chrome 就直接出图。</p>
+              <p class="en">Local three-pane Desk for humans. <code>mnblog cover</code> / <code>draw</code> render sketchboard HTML to PNG when Chrome is around.</p>
+            </div>
+            <div class="beat-media">
+              <img src="assets/readme/desk-ui.png" alt="Desk UI" width="960" height="540" loading="lazy" />
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="how" id="howto">
+      <div class="wrap">
+        <p class="section-label"><span class="zh-inline">怎么用</span><span class="en-inline">How it works</span></p>
+        <h2 class="section-title zh">三步就够。</h2>
+        <h2 class="section-title en">Three commands.</h2>
+        <p class="section-lead zh">建站、写文、出封面 —— 人和 agent 同一套文件。</p>
+        <p class="section-lead en">Init, write, cover — same files for people and agents.</p>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">01 · init</div>
+            <h3 class="zh">建站</h3>
+            <h3 class="en">Start a site</h3>
+            <p class="zh">拷贝示例站，并把主题 vendoring 进新目录。</p>
+            <p class="en">Copy the example and vendor the theme into a new folder.</p>
+            <code>mnblog init ../my-blog</code>
+          </div>
+          <div class="step">
+            <div class="step-num">02 · new</div>
+            <h3 class="zh">写文章</h3>
+            <h3 class="en">Write a post</h3>
+            <p class="zh">生成带 front matter 的 Markdown，放进 <code>_posts/</code>。</p>
+            <p class="en">Scaffold Markdown with front matter under <code>_posts/</code>.</p>
+            <code>mnblog new "标题"</code>
+          </div>
+          <div class="step">
+            <div class="step-num">03 · cover</div>
+            <h3 class="zh">出封面</h3>
+            <h3 class="en">Make a cover</h3>
+            <p class="zh">sketchboard 手绘风 PNG，路径写进 front matter。</p>
+            <p class="en">Sketchboard parchment PNG; path ready for front matter.</p>
+            <code>mnblog cover "标题"</code>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="status">
+      <div class="wrap">
+        <p class="section-label">Status</p>
+        <div class="status-box">
+          <strong>v0.4.0+</strong>
+          <span class="zh">sketchboard 封面 / 文内图 · Desk · agent CLI · Apache-2.0</span>
+          <span class="en">sketchboard covers / diagrams · Desk · agent CLI · Apache-2.0</span>
+        </div>
+        <p style="margin: 1.5rem 0 0; color: var(--text-muted); font-size: 0.95rem;">
+          <span class="zh">诚实边界：Desk 聊天每一发都是新的 CLI 进程；渲 PNG 需要本机 Chrome / Chromium。</span>
+          <span class="en">Honest limits: Desk chat is one-shot per send; PNG render needs local Chrome / Chromium.</span>
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer-inner">
+      <div class="footer-note">
+        <span class="zh">视觉层受 Claude.ai 产品站启发；本仓库独立，与 Anthropic 无官方关系。</span>
+        <span class="en">Visual layer inspired by Claude.ai’s product site; independent, not affiliated with Anthropic.</span>
+      </div>
+      <div>
+        <a href="https://github.com/miniLV/mnblog">GitHub</a>
+        ·
+        <a href="https://github.com/miniLV/mnblog/blob/main/LICENSE">Apache-2.0</a>
+        ·
+        <a href="https://github.com/miniLV/mnblog/blob/main/README.md">README</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var root = document.documentElement;
+      var buttons = document.querySelectorAll("[data-set-lang]");
+      function setLang(lang) {
+        root.setAttribute("data-lang", lang);
+        root.setAttribute("lang", lang === "en" ? "en" : "zh-Hans");
+        buttons.forEach(function (btn) {
+          btn.classList.toggle("is-active", btn.getAttribute("data-set-lang") === lang);
+        });
+        try { localStorage.setItem("mnblog-lang", lang); } catch (e) {}
+        document.title = lang === "en"
+          ? "mnblog — warm editorial Jekyll theme"
+          : "mnblog — 偏编辑气质的 Jekyll 主题";
+      }
+      buttons.forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          setLang(btn.getAttribute("data-set-lang"));
+        });
+      });
+      var params = new URLSearchParams(location.search);
+      var q = params.get("lang");
+      var saved = null;
+      try { saved = localStorage.getItem("mnblog-lang"); } catch (e) {}
+      if (q === "en" || q === "zh") setLang(q);
+      else if (saved === "en" || saved === "zh") setLang(saved);
+    })();
+  </script>
+</body>
+</html>

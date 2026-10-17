@@ -1,14 +1,16 @@
 <h1 align="center">mnblog</h1>
 
 <p align="center">
-  <strong>A warm editorial Jekyll theme with a thin CLI meant for people and coding agents.</strong>
+  <strong>A warm editorial Jekyll theme with a thin CLI for people and coding agents.</strong>
 </p>
 
 <p align="center">
-  Ivory canvas, clay accent, Source Serif + Source Sans, large type, quiet chrome. Dark mode is warm charcoal, not pure black. The visual layer is inspired by Claude.ai’s product site; this repo is independent and not affiliated with Anthropic.
+  Ivory canvas · clay accent · Source Serif / Source Sans<br />
+  Markdown in <code>_posts/</code> · agents on the CLI · sketchboard covers
 </p>
 
 <p align="center">
+  <a href="https://minilv.github.io/mnblog/">Site</a> ·
   <a href="https://github.com/miniLV/mnblog/releases/latest">Latest Release</a> ·
   <a href="https://github.com/miniLV/mnblog">GitHub</a> ·
   <a href="./README.md">简体中文</a> · <strong>English</strong>
@@ -16,10 +18,6 @@
 
 <p align="center">
   <code>./bin/mnblog init ../my-blog</code>
-</p>
-
-<p align="center">
-  Markdown in <code>_posts/</code> · agents on the CLI · native GitHub Pages builds
 </p>
 
 <p align="center">
@@ -38,89 +36,48 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/readme/home-dark.png" alt="mnblog home — dark" width="860" />
+  <img src="docs/assets/readme/cover-hello-mnblog.png" alt="sketchboard cover sample" width="560" />
 </p>
 
-<p align="center">
-  <img src="docs/assets/readme/post-light.png" alt="mnblog post page" width="860" />
-</p>
-
-<p align="center">
-  <img src="docs/assets/readme/desk-ui.png" alt="mnblog Desk light" width="860" />
-</p>
-
-<p align="center">
-  <img src="docs/assets/readme/desk-ui-dark.png" alt="mnblog Desk dark" width="860" />
-</p>
-
-<p align="center">
-  <img src="docs/assets/readme/editor.png" alt="mnblog early editor stub (replaced by Desk)" width="860" />
-</p>
-
-Extracted from the theme layer of [miniLV.github.io](https://github.com/miniLV/miniLV.github.io). Content, personal images, and site identity stay in your own blog repo.
+Extracted from the theme layer of [miniLV.github.io](https://github.com/miniLV/miniLV.github.io). Visual layer inspired by Claude.ai’s product site; independent, not affiliated with Anthropic. Content and site identity stay in your own blog repo.
 
 ---
 
 ## What you get
 
-- Markdown posts in `_posts/` (same habit as a normal Jekyll blog)
-- Layouts for home, post, tags, and 404 — Sass only, no Grunt / webpack / Bootstrap
+- Markdown posts in `_posts/`; home / post / tags / 404 — Sass only
 - GitHub Pages–friendly (`github-pages` gem / `remote_theme`)
-- Optional front matter: `summary`, `subtitle`, `cover_image` / `header-img`
-- Light / dark toggle that remembers the choice (falls back to system preference)
-- **`mnblog` CLI** for agents: `init` → `new` → `check` → `publish`, plus `ask` / `desk` (launch local Claude Code / Codex)
-- **sketchboard images**: `mnblog cover` / `mnblog draw` so authors (and agents) skip stock-photo chores
-- Local **Desk** (`mnblog desk --ui` / `mnblog ui`): post list, Markdown editor, one-shot local agent panel
+- Light / dark toggle (warm charcoal, not pure black)
+- **`mnblog` CLI**: `init` → `new` → `check` → `publish`, plus `ask` / `desk`
+- **sketchboard images**: `mnblog cover` / `mnblog draw`
+- Local **Desk** (`mnblog desk --ui`): post list + Markdown + one-shot local agent panel
 
 ---
 
 ## Three steps
-
-### 1. Create a site
 
 ```bash
 git clone https://github.com/miniLV/mnblog.git
 cd mnblog
 ./bin/mnblog init ../my-blog
 cd ../my-blog
-```
 
-`init` copies the example site and **vendors** the theme (`_layouts`, `_includes`, `_sass`, `assets`, …) so local preview works without waiting on GitHub.
+# Needs Ruby + Bundler
+bundle install && bundle exec jekyll serve   # or: mnblog serve
+# → http://127.0.0.1:4000
 
-Edit `_config.yml`: `title`, `url`, `nav_items`, hero copy, social links.
-
-### 2. Preview locally
-
-Needs Ruby + Bundler:
-
-```bash
-bundle install
-bundle exec jekyll serve
-# or: mnblog serve
-```
-
-Open `http://127.0.0.1:4000`.
-
-### 3. Write and publish
-
-**Human or agent — same files:**
-
-```bash
 mnblog new "Your title" --tags jekyll,notes
-# edit the file under _posts/
 mnblog check
 mnblog publish -m "post: Your title"
 ```
 
-Push to a GitHub Pages repo (often `<user>.github.io`). Pages builds with Jekyll; no Actions workflow is required for the default path.
+`init` copies the example and **vendors** the theme. Edit `_config.yml` for `title`, `url`, nav, and hero copy.
 
-GitHub access for agents: **`gh` / git / API only** — do not drive github.com in a browser.
+Push to a GitHub Pages repo; Jekyll builds natively. Agent GitHub access: **`gh` / git / API only** — no browser automation on github.com.
 
 ---
 
 ## Write a post
-
-`mnblog new` creates this shape. You can also hand-write `_posts/YYYY-MM-DD-slug.md`:
 
 ```md
 ---
@@ -131,28 +88,20 @@ date: 2026-10-17 12:00:00 +0800
 author: "Your name"
 tags:
   - Jekyll
-  - Notes
-summary: "Optional custom summary for cards."
-# cover_image: /assets/img/covers/cover-hello-mnblog.png  # mnblog cover "…"
+summary: "Optional card summary"
+# cover_image: /assets/img/covers/cover-hello-mnblog.png
 ---
-
-Your content here.
 ```
 
-Notes:
+- Filename: `_posts/YYYY-MM-DD-slug.md`
+- Posts render fine without covers — **do not invent image URLs**
+- Drafts: `mnblog new "Title" --draft`
 
-- Filename under `_posts/` must be `YYYY-MM-DD-slug.md`.
-- `summary` is optional. Cards fall back to `subtitle` or an excerpt.
-- `cover_image` / `header-img` are optional. Posts render fine without images — **do not invent image URLs**.
-- Drafts: `mnblog new "Title" --draft` → `_drafts/`.
-
-Full agent conventions: [AGENTS.md](./AGENTS.md) · skill pack: [skills/mnblog/SKILL.md](./skills/mnblog/SKILL.md)
+Conventions: [AGENTS.md](./AGENTS.md) · skill: [skills/mnblog/SKILL.md](./skills/mnblog/SKILL.md)
 
 ---
 
-## Agent path (preferred)
-
-Agents should stay on the filesystem and CLI:
+## Agent path
 
 ```text
 mnblog new "Title" --tags a,b
@@ -161,74 +110,47 @@ mnblog new "Title" --tags a,b
 → mnblog publish -m "post: Title"
 ```
 
-For a local Claude Code / Codex session or Desk UI:
-
 ```bash
-cd my-blog
-mnblog desk                      # interactive: launch claude (or codex) in the site root
-mnblog desk --ui                 # local Desk web UI (default http://127.0.0.1:4177/)
-mnblog ui                        # same
-mnblog ask "draft a post about X"  # one-shot: claude -p … / or codex exec …
-mnblog desk --agent codex
-mnblog ask --agent auto "…" -- --output-format json   # flags after -- pass through
+mnblog desk                 # interactive local claude / codex
+mnblog desk --ui            # local Desk (http://127.0.0.1:4177/)
+mnblog ask "draft a post about X"
+mnblog cover "Title"        # sketchboard cover
+mnblog draw "Loop" --kind flow
 ```
 
-| Command | What it does |
-|---------|----------------|
-| `mnblog init [dir]` | Starter site + vendored theme + AGENTS/skill |
-| `mnblog new "title"` | New post with front matter |
-| `mnblog check [path]` | Validate front matter + date filename |
-| `mnblog publish` | `git add` / `commit` / `push` (`--dry-run` supported) |
-| `mnblog serve` | `bundle exec jekyll serve` when Bundler is available |
-| `mnblog editor` | Alias of `desk --ui` (legacy name) |
-| `mnblog desk` | Interactive `claude` / `codex` in the site root |
-| `mnblog desk --ui` / `mnblog ui` | Local Desk: post list + editor + agent panel |
-| `mnblog ask "…"` | One-shot prompt; no prompt → falls back to `desk` |
-| `mnblog cover "…"` / `mnblog draw "…"` | sketchboard cover / in-post diagram (HTML→PNG) |
+| Command | Role |
+|---------|------|
+| `init` / `new` / `check` / `publish` / `serve` | Site, posts, validate, push, preview |
+| `desk` / `desk --ui` / `ui` / `ask` | Local agent + Desk |
+| `cover` / `draw` | sketchboard cover / in-post diagram |
 
-`ask` / `desk` / `ui` resolve the nearest folder with `_config.yml` **and** `_posts/`, copy `AGENTS.md` + `skills/mnblog/` from the package if missing, and detect `claude` / `codex` on PATH (`--agent auto` prefers Claude when both exist). **mnblog never asks for cloud API keys** — it reuses whatever login those CLIs already have.
-
-Honest limits: Codex one-shot is `codex exec` (not `-p`); a clear error if neither binary is installed; **Desk chat is one-shot per send** (fresh CLI process each turn) — prior turns are only pasted into the next prompt as context, not a live agent session.
-
-Zero npm dependencies for the CLI (Node ≥ 18). Optional: `package.json` exposes the `mnblog` bin.
-
+**mnblog never stores cloud API keys** — it reuses your local Claude Code / Codex login. Desk chat is one-shot per send; PNG render needs local Chrome.
 
 ---
 
 ## Images (sketchboard)
 
-Covers and in-post diagrams use [sketchboard-diagram](https://github.com/miniLV/sketchboard-diagram) (sparse copy under `skills/sketchboard-diagram/`). **Do not invent CDN / Unsplash URLs.**
-
-### Three steps
-
 ```bash
-# 1) Cover → assets/img/covers/<slug>.png + front-matter snippet
-mnblog cover "Post title"
-
-# 2) In-post diagram (architecture | flow | flywheel)
-mnblog draw "Publish loop" --kind flow
-
-# 3) Wire the path into the post
-# cover_image: /assets/img/covers/….png
-# or ![caption](/assets/img/diagrams/….png)
+mnblog cover "Post title"              # → assets/img/covers/<slug>.png
+mnblog draw "Publish loop" --kind flow # architecture | flow | flywheel
+mnblog new "Title" --with-cover
 ```
 
-`mnblog new "Title" --with-cover` stubs `cover_image` and reminds you to run `mnblog cover`.
+Vendored sparse copy of [sketchboard-diagram](https://github.com/miniLV/sketchboard-diagram). Without Chrome you still get `_diagrams/*.html` plus an agent prompt.
 
-With Chrome/Chromium on PATH (or `CHROME_PATH`), the CLI renders HTML→PNG. Without it, you still get `_diagrams/*.html` plus an exact agent prompt — use `mnblog ask` or Desk presets **Generate cover / diagram**. Or install the full skill:
+---
+
+## Local Desk
 
 ```bash
-npx skills add https://github.com/miniLV/sketchboard-diagram
+mnblog desk --ui   # or: mnblog ui
 ```
 
-The example homepage covers and one in-post flow diagram are real sketchboard PNGs (HTML sources under `example/_diagrams/`).
-
+Three panes: post list, Markdown (Ctrl/Cmd+S saves), local agent stream. Binds `127.0.0.1` only; zero npm dependencies.
 
 ---
 
 ## Use as `remote_theme`
-
-If you already have a Jekyll site and only want the look:
 
 ```yaml
 remote_theme: miniLV/mnblog
@@ -236,58 +158,26 @@ plugins:
   - jekyll-remote-theme
   - jekyll-paginate
   - jekyll-sitemap
-
 theme_stylesheet: "/assets/css/style.css"
 theme_script: "/assets/js/site.js"
 favicon: "/assets/favicon.svg"
 ```
 
-Keep your own `_posts`, `index.html`, `tags.html`, and identity fields. When `remote_theme` is active, you can drop local copies of `_layouts` / `_includes` / `_sass` / `assets`.
-
-There is also an `mnblog.gemspec` for the classic gem-theme layout if you prefer that over remote.
+`mnblog.gemspec` is also available.
 
 ---
 
-## Customize the site
-
-Most site-level copy lives in `_config.yml` (same idea as the source blog):
+## Site config
 
 | Key | Role |
 |-----|------|
 | `title` · `SEOTitle` · `description` | Identity |
-| `brand_mark` | Letter in the nav mark |
-| `default_eyebrow` | Small label under the title |
-| `hero_title` · `hero_description` · `hero_*_cta` | Home hero |
-| `nav_items` · `social_links` · `footer_note` | Chrome |
+| `brand_mark` · `default_eyebrow` | Nav mark + label |
+| `hero_*` · `nav_items` · `social_links` | Home + chrome |
 | `theme_stylesheet` · `theme_script` · `favicon` | Asset paths |
-| `timezone` | Default examples use `Asia/Shanghai` |
+| `timezone` | Examples use `Asia/Shanghai` |
 
-Theme CSS tokens live in `_sass/_tokens.scss` (light ivory / dark charcoal). Change those only when you are intentionally forking the look.
-
----
-
-## Local Desk (for humans)
-
-```bash
-cd my-blog
-mnblog desk --ui
-# or: mnblog ui
-# → http://127.0.0.1:4177/
-```
-
-Three panes: left `_posts/` / `_drafts/`, center Markdown (Ctrl/Cmd+S saves to disk), right agent panel (streams local `claude -p` / `codex exec`). Top bar: agent picker, Publish (confirms then runs `mnblog publish`), simple Preview. Full Jekyll preview in another terminal: `mnblog serve`.
-
-- Binds `127.0.0.1` only; zero npm dependencies
-- **No** cloud API keys stored; **no** GitHub OAuth
-- Agents should still prefer CLI + files; Desk is the human surface
-
-`mnblog editor` is now an alias for Desk; the old stub page only points here.
-
----
-
-## Fonts
-
-Google Fonts are linked for Source Sans 3, Source Serif 4, and JetBrains Mono. Without network fonts, the stack falls back to Helvetica / Georgia / system mono. No local font install is required.
+Tokens: `_sass/_tokens.scss`.
 
 ---
 
@@ -295,23 +185,21 @@ Google Fonts are linked for Source Sans 3, Source Serif 4, and JetBrains Mono. W
 
 ```text
 _layouts/  _includes/  _sass/   theme
-assets/                     CSS entry, JS, favicon
-css/  js/                   same assets mirrored for copy-paste sites
-bin/mnblog                  agent CLI (includes ask / desk / ui)
-desk/                       local Desk server + UI
-example/                    demo site + 3 sample posts + parchment covers
-editor/                     legacy stub (points to Desk)
-docs/assets/readme/         README screenshots
-AGENTS.md  skills/          agent docs + skill
+assets/  css/  js/              styles & scripts
+bin/mnblog                      CLI (ask / desk / cover / draw …)
+desk/                           local Desk
+example/                        demo + sketchboard covers
+docs/                           promo landing + README screenshots
+AGENTS.md  skills/              agent docs + skill
 ```
 
-**Not** included: personal posts, personal `img/`, submodules, or migrating [miniLV.github.io](https://github.com/miniLV/miniLV.github.io). That stay-on-the-blog migration is a follow-up.
+**Not** included: personal posts, or migrating miniLV.github.io onto this theme (follow-up).
 
 ---
 
 ## Status
 
-**v0.3.0** — Local Desk (`mnblog desk --ui` / `mnblog ui`): post list + Markdown edit/save + one-shot local agent streaming panel + Publish. v0.2 TTY `ask` / `desk` still work.
+**v0.4.0+** — sketchboard covers / diagrams (`cover` / `draw`) · local Desk · agent CLI (`ask` / `desk`). Apache-2.0.
 
 ## License
 
