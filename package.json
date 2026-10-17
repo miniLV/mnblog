@@ -1,6 +1,6 @@
 {
   "name": "mnblog",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Claude-warm Jekyll blog theme with a thin agent CLI",
   "bin": {
     "mnblog": "./bin/mnblog"
@@ -19,7 +19,7 @@
     "AGENTS.md",
     "LICENSE",
     "README.md",
-    "README.zh.md",
+    "README.en.md",
     "mnblog.gemspec"
   ],
   "repository": {

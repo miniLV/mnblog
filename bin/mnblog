@@ -9,7 +9,7 @@ const fs = require("fs");
 const path = require("path");
 const { spawnSync, execSync } = require("child_process");
 
-const VERSION = "0.1.0";
+const VERSION = "0.1.1";
 const ROOT = path.resolve(__dirname, "..");
 
 function usage(code = 0) {
